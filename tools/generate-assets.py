@@ -31,8 +31,9 @@ Writes:
 import json
 import os
 import pathlib
-import struct
-import zlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 GRID = 32          # logical sprite size (24 was too cramped to read necklines)
 SCALE = 4          # output pixels per logical pixel
@@ -45,118 +46,11 @@ SHEET_OUT = ROOT / "docs" / "contact-sheet.png"
 
 INK = "#16241b"    # shared outline colour, matches the site's --ink
 
-# ---------------------------------------------------------------------------
-# Tiny deterministic PRNG (linear congruential) — avoids depending on the
-# stability of random's internals across Python versions.
-# ---------------------------------------------------------------------------
-class Rng:
-    def __init__(self, seed):
-        self.s = seed & 0xFFFFFFFF
-
-    def next(self):
-        self.s = (1103515245 * self.s + 12345) & 0x7FFFFFFF
-        return self.s
-
-    def pick(self, seq):
-        return seq[self.next() % len(seq)]
-
-    def chance(self, pct):
-        return (self.next() % 100) < pct
-
-
-# ---------------------------------------------------------------------------
-# Colour helpers
-# ---------------------------------------------------------------------------
-def hex_rgb(h):
-    h = h.lstrip("#")
-    return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
-
-
-def mix(c, target, amount):
-    return tuple(round(a + (b - a) * amount) for a, b in zip(c, target))
-
-
-def lighten(c, amount):
-    return mix(c, (255, 255, 255), amount)
-
-
-def darken(c, amount):
-    return mix(c, (0, 0, 0), amount)
-
-
-# ---------------------------------------------------------------------------
-# Canvas: roles, silhouette primitives, auto-outline, auto-shade
-# ---------------------------------------------------------------------------
-# Role codes stored in the grid:
-#   ' ' transparent   'X' main fabric   'B' secondary (pattern/trim)
-#   'A' accent (buttons, zips)          'O' outline
-#   'L' highlight (derived)             'S' shadow (derived)
-class Canvas:
-    def __init__(self, size=GRID):
-        self.size = size
-        self.g = [[" "] * size for _ in range(size)]
-
-    def set(self, x, y, role):
-        if 0 <= x < self.size and 0 <= y < self.size:
-            self.g[y][x] = role
-
-    def get(self, x, y):
-        if 0 <= x < self.size and 0 <= y < self.size:
-            return self.g[y][x]
-        return " "
-
-    def rect(self, x0, y0, x1, y1, role="X"):
-        for y in range(y0, y1 + 1):
-            for x in range(x0, x1 + 1):
-                self.set(x, y, role)
-
-    def clear_rect(self, x0, y0, x1, y1):
-        self.rect(x0, y0, x1, y1, " ")
-
-    def taper(self, x0, x1, y0, y1, grow, role="X"):
-        """A body that widens (grow>0) or narrows (grow<0) toward the bottom."""
-        rows = max(1, y1 - y0)
-        for i, y in enumerate(range(y0, y1 + 1)):
-            d = round(grow * i / rows)
-            self.rect(x0 - d, y, x1 + d, y, role)
-
-    def solid(self):
-        return {"X", "B", "A", "L", "S"}
-
-    def outline(self):
-        """Any transparent pixel touching fabric becomes outline."""
-        solid = self.solid()
-        adds = []
-        for y in range(self.size):
-            for x in range(self.size):
-                if self.g[y][x] != " ":
-                    continue
-                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                    if self.get(x + dx, y + dy) in solid:
-                        adds.append((x, y))
-                        break
-        for x, y in adds:
-            self.set(x, y, "O")
-
-    def shade(self):
-        """Top-lit: highlight the top edge of fabric, shadow the bottom."""
-        solid = self.solid()
-        out = [row[:] for row in self.g]
-        for y in range(self.size):
-            for x in range(self.size):
-                r = self.g[y][x]
-                if r not in ("X", "B"):
-                    continue
-                above = self.get(x, y - 1)
-                below = self.get(x, y + 1)
-                if above not in solid:
-                    out[y][x] = "L"
-                elif below not in solid:
-                    out[y][x] = "S"
-        self.g = out
-
-    def rows(self):
-        return self.g
+# Shared pixel-art toolkit — the PRNG, colour helpers, Canvas and PNG encoder
+# live in pixelkit so the garment and trading-card generators draw through
+# exactly one code path and cannot drift apart stylistically.
+from pixelkit import (Canvas, Rng, INK, hex_rgb, lighten, darken,   # noqa: E402
+                      render_pixels, upscale, write_png)
 
 
 # ---------------------------------------------------------------------------
@@ -476,64 +370,6 @@ RARITY_LABEL = {
     "seasonal": "Seasonal Pick", "everyday": "Everyday Staple",
 }
 RARITY_ORDER = ["rare", "designer", "statement", "seasonal", "everyday"]
-
-
-# ---------------------------------------------------------------------------
-# Rendering
-# ---------------------------------------------------------------------------
-def render_pixels(canvas, main, secondary, accent):
-    """Role grid -> RGBA pixel grid at logical resolution."""
-    m, s2, a = hex_rgb(main), hex_rgb(secondary), hex_rgb(accent)
-    colours = {
-        "X": m,
-        "L": lighten(m, 0.22),
-        "S": darken(m, 0.24),
-        "B": s2,
-        "A": a,
-        "O": hex_rgb(INK),
-    }
-    out = []
-    for row in canvas.rows():
-        line = []
-        for role in row:
-            if role == " ":
-                line.append((0, 0, 0, 0))
-            else:
-                r, g, b = colours[role]
-                line.append((r, g, b, 255))
-        out.append(line)
-    return out
-
-
-def upscale(pixels, factor):
-    out = []
-    for row in pixels:
-        big = []
-        for px in row:
-            big.extend([px] * factor)
-        for _ in range(factor):
-            out.append(list(big))
-    return out
-
-
-def write_png(path, pixels):
-    h = len(pixels)
-    w = len(pixels[0])
-    raw = bytearray()
-    for row in pixels:
-        raw.append(0)                       # filter type 0 (None)
-        for (r, g, b, a) in row:
-            raw += bytes((r, g, b, a))
-
-    def chunk(typ, data):
-        return (struct.pack(">I", len(data)) + typ + data
-                + struct.pack(">I", zlib.crc32(typ + data) & 0xFFFFFFFF))
-
-    png = (b"\x89PNG\r\n\x1a\n"
-           + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0))
-           + chunk(b"IDAT", zlib.compress(bytes(raw), 9))
-           + chunk(b"IEND", b""))
-    path.write_bytes(png)
 
 
 # ---------------------------------------------------------------------------
