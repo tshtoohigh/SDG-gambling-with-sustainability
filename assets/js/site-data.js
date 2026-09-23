@@ -216,11 +216,20 @@ const RECENT_FINDS = [
    Helpers
    -------------------------------------------------------------------------- */
 
-/** Weighted draw across a tier's odds table. Returns a rarity id. */
-function drawRarity(odds) {
-  const entries = RARITY_ORDER
+/**
+ * Weighted draw across any odds table. Returns a rarity id.
+ *
+ * `order` is optional and only fixes iteration order; when omitted the keys
+ * are taken from the table itself. That keeps this usable by product lines
+ * with their own rarity ladders (see card-data.js) rather than hardcoding the
+ * clothing ladder — which it previously did, and which broke the Card Vault.
+ */
+function drawRarity(odds, order) {
+  const keys = order && order.length ? order : Object.keys(odds);
+  const entries = keys
     .map((id) => [id, odds[id] || 0])
     .filter(([, pct]) => pct > 0);
+  if (!entries.length) return null;
   const total = entries.reduce((sum, [, pct]) => sum + pct, 0);
   let roll = Math.random() * total;
   for (const [id, pct] of entries) {

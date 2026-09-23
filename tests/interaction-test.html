@@ -8,8 +8,11 @@
 
 <script>
 const lines = [];
-const log = (ok, msg) => lines.push(`${ok ? 'PASS' : 'FAIL'}  ${msg}`);
 const out = () => { document.getElementById('out').textContent = lines.join('\n'); };
+/* Flush after every assertion so a stall mid-run still shows how far we got —
+   otherwise a hang produces an empty page and tells you nothing. */
+const log = (ok, msg) => { lines.push(`${ok ? 'PASS' : 'FAIL'}  ${msg}`); out(); };
+const mark = (msg) => { lines.push(`---- ${msg}`); out(); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 function loadFrame(url) {
@@ -45,6 +48,7 @@ function distinctHues(canvas) {
 
 async function run() {
   /* ---------------- 1. box.html: wheel draws, spin resolves ---------------- */
+  mark('section 1: box.html: wheel draws, spin resolves');
   let win = await loadFrame('/box.html');
   let doc = win.document;
 
@@ -81,6 +85,7 @@ async function run() {
   log(/Yours \/ ours|observed/i.test(tally.textContent), 'box.html: running tally rendered after spin');
 
   /* ---------------- 2. tier switching rebinds everything ---------------- */
+  mark('section 2: tier switching rebinds everything');
   doc.querySelector('[data-tier-value="premium"]').click();
   await sleep(300);
   const priceEl = doc.querySelector('[data-tier-bind="price"]');
@@ -98,6 +103,7 @@ async function run() {
       'box.html: 2 of them are feature slots');
 
   /* ---------------- 3. odds modal ---------------- */
+  mark('section 3: odds modal');
   doc.querySelector('[data-odds-modal]').click();
   await sleep(300);
   const modal = doc.querySelector('.modal.is-open');
@@ -114,6 +120,7 @@ async function run() {
   }
 
   /* ---------------- 4. cart ---------------- */
+  mark('section 4: cart');
   doc.querySelector('[data-product] [data-add-to-cart]').click();
   await sleep(300);
   const badge = doc.querySelector('[data-cart-count]');
@@ -128,6 +135,7 @@ async function run() {
       `box.html: qty increment doubles total to $90 (${doc.querySelector('[data-cart-total]').textContent})`);
 
   /* ---------------- 5. shop.html tier cards ---------------- */
+  mark('section 5: shop.html tier cards');
   win = await loadFrame('/shop.html');
   doc = win.document;
   const bars = doc.querySelectorAll('[data-odds-bar]');
@@ -143,6 +151,7 @@ async function run() {
   log(ringVals.join(',') === '82,88,94', `shop.html: sustainability rings set to 82,88,94 (${ringVals.join(',')})`);
 
   /* ---------------- 6. deep link ---------------- */
+  mark('section 6: deep link');
   win = await loadFrame('/box.html?tier=starter');
   doc = win.document;
   await sleep(300);
@@ -151,6 +160,7 @@ async function run() {
   log(win.SecondSpin.wheels[0].tier.id === 'starter', 'box.html?tier=starter: wheel switched to starter');
 
   /* ---------------- 7. index.html counters + marquee ---------------- */
+  mark('section 7: index.html counters + marquee');
   win = await loadFrame('/index.html');
   doc = win.document;
   await sleep(500);
@@ -162,6 +172,7 @@ async function run() {
       `index.html: scroll-reveal elements activated (${doc.querySelectorAll('.reveal.is-in').length})`);
 
   /* ---------------- 8. newsletter validation ---------------- */
+  mark('section 8: newsletter validation');
   const form = doc.querySelector('[data-newsletter]');
   const email = form.querySelector('input[type="email"]');
   email.value = 'nope';
@@ -174,6 +185,7 @@ async function run() {
   log(form.querySelector('[data-form-msg]').dataset.state === 'ok', 'index.html: valid email accepted');
 
   /* ---------------- 9. Trade Up ---------------- */
+  mark('section 9: Trade Up');
   win = await loadFrame('/box.html?tier=classic');
   doc = win.document;
   await sleep(300);
@@ -257,6 +269,7 @@ async function run() {
   log(premOffer && /\$4\.50/.test(premOffer.textContent), 'tradeup/premium: fee shown as $4.50 (10% of $45)');
 
   /* ---------------- 10. Item lookbook ---------------- */
+  mark('section 10: Item lookbook');
   win = await loadFrame('/lookbook.html');
   doc = win.document;
   await sleep(400);
@@ -329,6 +342,7 @@ async function run() {
       'lookbook: explicitly distinguishes catalogue breadth from draw odds');
 
   /* ---------------- 11. Wheel shows a real catalogue item ---------------- */
+  mark('section 11: Wheel shows a real catalogue item');
   win = await loadFrame('/box.html?tier=classic');
   doc = win.document;
   await sleep(300);
@@ -347,6 +361,103 @@ async function run() {
     log(link && link.getAttribute('href') === 'lookbook.html?tag=rare',
         'wheel: sample links through to the filtered lookbook');
   }
+
+  /* ---------------- 12. Card Vault + reveal reel ---------------- */
+  mark('section 12: Card Vault + reveal reel');
+  win = await loadFrame('/cards.html');
+  doc = win.document;
+  await sleep(500);
+
+  const reel = win.SecondSpinReels && win.SecondSpinReels[0];
+  log(!!reel, 'reel: instantiated on cards.html');
+
+  const cells = () => Array.from(doc.querySelectorAll('.reel__cell'));
+  log(cells().length === 64, `reel: strip has 64 cells (${cells().length})`);
+
+  const reelTally = () => cells().reduce((a, c) => {
+    a[c.dataset.rarity] = (a[c.dataset.rarity] || 0) + 1; return a;
+  }, {});
+  const before = reelTally();
+  log(Object.values(before).reduce((a, b) => a + b, 0) === 64, 'reel: cell counts total 64');
+
+  /* THE honesty invariant: strip composition must match published odds. */
+  const collector = win.CARD_TIER_BY_ID.collector;
+  let proportional = true;
+  const detail = [];
+  Object.keys(before).forEach((k) => {
+    const exact = (collector.odds[k] / 100) * 64;
+    detail.push(`${k} ${before[k]}/${exact.toFixed(1)}`);
+    if (Math.abs(before[k] - exact) > 1) proportional = false;
+  });
+  log(proportional, `reel: every cell count within 1 of its exact proportion (${detail.join(', ')})`);
+  log(doc.querySelectorAll('.reel__img').length > 0, 'reel: cells show real catalogue card sprites');
+
+  /* Spin — reduced motion is forced, so this resolves immediately */
+  doc.querySelector('[data-reel-spin]').click();
+  await sleep(600);
+
+  const won = doc.querySelector('.reel__cell.is-won');
+  log(!!won, 'reel: a winning cell is marked after opening');
+
+  /* NO FAKE NEAR-MISS: winning cell centre must sit on the marker centre. */
+  if (won) {
+    const vp = doc.querySelector('[data-reel-viewport]').getBoundingClientRect();
+    const wr = won.getBoundingClientRect();
+    const drift = Math.abs((wr.left + wr.width / 2) - (vp.left + vp.width / 2));
+    log(drift < 1.5,
+        `reel: winning cell lands DEAD CENTRE on the marker, drift ${drift.toFixed(2)}px — no manufactured near-miss`);
+  }
+
+  const reelResult = doc.querySelector('[data-reel-result]');
+  log(/dead centre/i.test(reelResult.textContent), 'reel: result discloses the dead-centre landing');
+  log(/chance/.test(reelResult.textContent), 'reel: result states the % chance of the outcome');
+
+  /* Composition must survive a spin — winner is swapped in, never inserted */
+  const after = reelTally();
+  const sameComposition = Object.keys(before).length === Object.keys(after).length &&
+    Object.keys(before).every(k => before[k] === after[k]);
+  log(sameComposition, 'reel: composition preserved after spin (winner swapped, not injected)');
+
+  /* Vault has 0% Common, so no Common cell may exist on its strip */
+  doc.querySelector('[data-card-tier-value="vault"]').click();
+  await sleep(400);
+  log(!cells().some(c => c.dataset.rarity === 'common'),
+      'reel: Vault strip contains zero Common cells, matching its published 0%');
+  log(doc.querySelector('[data-card-bind="name"]').textContent.trim() === 'Vault Box',
+      'reel: tier switch rebinds the card box name');
+
+  /* Card odds tables must sum to 100, same guard rail as clothing */
+  let cardSums = true;
+  win.CARD_TIERS.forEach((t) => {
+    const s = Object.values(t.odds).reduce((a, b) => a + b, 0);
+    if (s !== 100) cardSums = false;
+  });
+  log(cardSums, 'cards: every card tier odds table sums to 100%');
+
+  /* Card art must be original — assets live under assets/cards/ */
+  log(win.CARD_CATALOG.length === 60, `cards: 60 card designs in catalogue (${win.CARD_CATALOG.length})`);
+  log(win.CARD_CATALOG.every(c => c.file.startsWith('assets/cards/card-')),
+      'cards: all card art served from our own assets/cards/');
+
+  /* ---------------- 13. Reveal-mode toggle on the clothing page ---------------- */
+  win = await loadFrame('/box.html?tier=classic');
+  doc = win.document;
+  await sleep(400);
+  const wheelPanel = doc.querySelector('[data-reveal-panel="wheel"]');
+  const reelPanel = doc.querySelector('[data-reveal-panel="reel"]');
+  log(!!wheelPanel && !!reelPanel, 'reveal: both wheel and reel panels exist on box.html');
+  log(reelPanel.hidden === true, 'reveal: reel panel hidden by default (wheel is the default)');
+  doc.querySelector('[data-reveal-mode="reel"]').click();
+  await sleep(400);
+  log(reelPanel.hidden === false && wheelPanel.hidden === true, 'reveal: toggling shows the reel, hides the wheel');
+  const clothingReel = win.SecondSpinReels && win.SecondSpinReels[0];
+  log(clothingReel && clothingReel.src.kind === 'clothing', 'reveal: box.html reel is bound to the clothing ladder');
+  log(doc.querySelectorAll('[data-reveal-panel="reel"] .reel__cell').length === 64,
+      'reveal: clothing reel strip also built with 64 cells');
+  doc.querySelector('[data-reel-spin]').click();
+  await sleep(600);
+  log(!!doc.querySelector('[data-reveal-panel="reel"] .reel__cell.is-won'),
+      'reveal: clothing reel resolves a result too');
 
   const failed = lines.filter(l => l.startsWith('FAIL')).length;
   lines.push('');

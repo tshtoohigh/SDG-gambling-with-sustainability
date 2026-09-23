@@ -34,6 +34,7 @@
     <nav class="nav" id="site-nav" data-nav aria-label="Main">
       <ul class="nav__list">
         <li><a class="nav__link" href="shop.html" aria-current="page">Shop boxes</a></li>
+        <li><a class="nav__link" href="cards.html">Cards</a></li>
         <li><a class="nav__link" href="lookbook.html">Lookbook</a></li>
         <li><a class="nav__link" href="impact.html">Our impact</a></li>
         <li><a class="nav__link" href="about.html">Our story</a></li>
@@ -68,6 +69,42 @@
   <section class="container product" data-product aria-labelledby="product-title">
 
     <!-- ---------- LEFT: the reveal wheel ---------- -->
+    <div>
+      <div class="cluster" style="justify-content:center;margin-bottom:var(--sp-4)">
+        <div class="reveal-toggle" data-reveal-toggle role="group" aria-label="Choose how to reveal">
+          <button type="button" data-reveal-mode="wheel" aria-pressed="true">
+            <span data-icon="wheel"></span> Wheel
+          </button>
+          <button type="button" data-reveal-mode="reel" aria-pressed="false">
+            <span data-icon="box"></span> Reel
+          </button>
+        </div>
+      </div>
+
+      <div data-reveal-panel="reel" hidden>
+        <div class="reel" data-reel-scope data-reel-kind="clothing" data-reel-tier="classic">
+          <div class="reel__viewport" data-reel-viewport>
+            <div class="reel__track" data-reel-track></div>
+            <div class="reel__marker" data-reel-marker aria-hidden="true"></div>
+          </div>
+          <div class="reel__controls">
+            <button class="btn btn--berry btn--lg" type="button" data-reel-spin>Open the box</button>
+            <button class="link-btn" type="button" data-odds-modal="classic" data-product-odds>Odds breakdown</button>
+          </div>
+          <div class="reel__result" data-reel-result role="status"></div>
+          <div class="reel__composition" data-reel-composition></div>
+          <p class="sim-note" style="margin-top:var(--sp-4)">
+            <span data-icon="info"></span>
+            <span>
+              <b>Same odds, different animation.</b> The strip is apportioned from the published
+              table and stops dead centre on your result &mdash; we don't salt it with extra
+              rares, and we don't drift the marker to fake a near miss.
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div data-reveal-panel="wheel">
     <div class="product__stage" data-wheel-scope data-wheel-tier="classic">
       <p class="eyebrow" style="justify-content:center;width:100%;text-align:center;display:flex">
         <span data-icon="wheel" style="width:16px"></span> Feature slot odds, drawn to scale
@@ -104,6 +141,9 @@
       </p>
 
       <div data-wheel-tally style="margin-top:var(--sp-4)"></div>
+    </div>
+
+      </div>
     </div>
 
     <!-- ---------- RIGHT: buy panel ---------- -->
@@ -392,6 +432,7 @@
       <div>
         <h4>Learn</h4>
         <ul class="footer-list">
+          <li><a href="cards.html">Card Vault</a></li>
           <li><a href="lookbook.html">Item lookbook</a></li>
           <li><a href="impact.html">Our impact</a></li>
           <li><a href="about.html">Our story</a></li>
@@ -442,5 +483,6 @@
 <script src="assets/js/app.js"></script>
 <script src="assets/js/item-catalog.js"></script>
 <script src="assets/js/wheel.js"></script>
+<script src="assets/js/reel.js"></script>
 </body>
 </html>
