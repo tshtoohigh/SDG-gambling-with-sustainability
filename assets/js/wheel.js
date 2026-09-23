@@ -34,44 +34,211 @@ class Wheel {
     this.spins = 0;
     this.lastSegIndex = -1;
 
+    /* Trade Up state */
+    this.tradeUps = 0;          // how many this slot has used (capped)
+    this.extraSpend = 0;        // running fee total, shown to the visitor
+    this.tradedAway = [];       // outcomes given up, for the ledger
+    this.poolFrom = null;       // null = base tier odds; else the traded-from id
+
     this.setTier(scope.dataset.wheelTier || DEFAULT_TIER);
 
     this.resize();
     window.addEventListener('resize', () => this.resize());
 
     if (this.spinBtn) {
-      this.spinBtn.addEventListener('click', () => this.spin());
+      this.spinBtn.addEventListener('click', () => this.spinFreshSlot());
+    }
+
+    /* Trade Up controls live inside the result panel, which is re-rendered
+       after every spin, so they are handled by delegation. */
+    if (this.resultEl) {
+      this.resultEl.addEventListener('click', (e) => {
+        if (e.target.closest('[data-trade-up]')) this.tradeUp();
+        else if (e.target.closest('[data-keep-it]')) this.keepIt();
+      });
     }
   }
 
   /* ---------------------------------------------------------------- setup */
 
-  setTier(tierId) {
-    this.tier = TIER_BY_ID[tierId] || TIER_BY_ID[DEFAULT_TIER];
-    this.scope.dataset.wheelTier = this.tier.id;
-
-    /* Build segments straight from the odds table. For very thin slices we
-       still render the true arc — we just move the label outward rather
-       than fattening the slice. */
+  /**
+   * Lay out wheel segments from a list of {id, label, color, pct}.
+   * Arc angles are derived from `pct`, so the geometry always matches the
+   * published number — this is what keeps the wheel honest, and it holds for
+   * Trade Up pools exactly as it does for base tier odds.
+   */
+  setSegments(list) {
     let angle = 0;
-    this.segments = tierOddsList(this.tier).map((r) => {
+    this.segments = list.map((r) => {
       const arc = (r.pct / 100) * Math.PI * 2;
       const seg = { ...r, start: angle, arc, end: angle + arc };
       angle += arc;
       return seg;
     });
+  }
 
-    this.canvas.setAttribute('role', 'img');
-    this.canvas.setAttribute(
-      'aria-label',
-      `Odds wheel for the ${this.tier.name}. Segment sizes match the published odds: ${tierOddsSentence(this.tier)}.`
-    );
+  /** The odds actually used for the next draw: whatever is on the wheel now. */
+  currentOdds() {
+    return this.segments.reduce((acc, s) => { acc[s.id] = s.pct; return acc; }, {});
+  }
+
+  oddsSentence() {
+    return this.segments.map((s) => `${s.label} ${s.pct}%`).join('  \u00b7  ');
+  }
+
+  setTier(tierId) {
+    this.tier = TIER_BY_ID[tierId] || TIER_BY_ID[DEFAULT_TIER];
+    this.scope.dataset.wheelTier = this.tier.id;
+
+    /* Switching tier abandons any Trade Up in progress. */
+    this.tradeUps = 0;
+    this.extraSpend = 0;
+    this.tradedAway = [];
+    this.poolFrom = null;
+
+    this.setSegments(tierOddsList(this.tier));
+    this.describeCanvas();
 
     this.tally = {};
     this.spins = 0;
     this.renderTally();
     this.resetResult();
     this.draw();
+  }
+
+  describeCanvas() {
+    this.canvas.setAttribute('role', 'img');
+    this.canvas.setAttribute(
+      'aria-label',
+      this.poolFrom
+        ? `Trade Up wheel for the ${this.tier.name}, after giving up a ` +
+          `${RARITIES[this.poolFrom].label}. Segment sizes match the published ` +
+          `Trade Up odds: ${this.oddsSentence()}.`
+        : `Odds wheel for the ${this.tier.name}. Segment sizes match the ` +
+          `published odds: ${tierOddsSentence(this.tier)}.`
+    );
+  }
+
+  /* -------------------------------------------------------------- trade up */
+
+  /** Move the wheel onto the Trade Up pool and spin it. */
+  tradeUp() {
+    if (this.spinning) return;
+    const from = this.lastResult;
+    if (!from || !canTradeUpFrom(from.id)) return;
+    if (this.tradeUps >= TRADE_UP.maxPerSlot) return;
+
+    const pool = tradeUpPool(this.tier, from.id);
+    if (!pool.length) return;
+
+    this.tradeUps += 1;
+    this.extraSpend += tradeUpPrice(this.tier);
+    this.tradedAway.push(from);
+    this.poolFrom = from.id;
+
+    this.setSegments(pool);
+    this.describeCanvas();
+    this.tally = {};
+    this.spins = 0;
+    this.draw();
+    this.spin();
+  }
+
+  /** Decline the offer — just clears the prompt. */
+  keepIt() {
+    if (!this.resultEl) return;
+    const kept = this.resultEl.querySelector('[data-offer]');
+    if (kept) kept.remove();
+  }
+
+  /**
+   * The main Spin button always simulates a brand-new feature slot, so if the
+   * wheel is currently showing a Trade Up pool it resets to base odds first.
+   * Without this, a visitor who traded up would keep spinning the upgraded
+   * pool for free and read far better odds than they would actually get.
+   */
+  spinFreshSlot() {
+    if (this.spinning) return;
+    if (this.poolFrom) this.resetToBaseOdds();
+    this.spin();
+  }
+
+  resetToBaseOdds() {
+    this.tradeUps = 0;
+    this.extraSpend = 0;
+    this.tradedAway = [];
+    this.poolFrom = null;
+    this.setSegments(tierOddsList(this.tier));
+    this.describeCanvas();
+    this.tally = {};
+    this.spins = 0;
+    this.renderTally();
+    this.draw();
+  }
+
+  /**
+   * The Trade Up offer, rendered only when the last result is eligible and
+   * the cap has not been reached. Shows the exact new odds and the floor
+   * guarantee before any money is notionally spent.
+   */
+  tradeUpOfferHTML(seg) {
+    if (!canTradeUpFrom(seg.id)) return '';
+    if (this.tradeUps >= TRADE_UP.maxPerSlot) {
+      return `<p class="sim-note" data-offer style="margin-top:var(--sp-4)">
+        ${icon('info')}
+        <span><b>Trade Up already used on this slot.</b> It's capped at
+        ${TRADE_UP.maxPerSlot} per feature slot on purpose &mdash; so this can't
+        turn into a chase. <a href="faq.html#tradeup">Why we cap it</a></span>
+      </p>`;
+    }
+
+    const pool = tradeUpPool(this.tier, seg.id);
+    if (!pool.length) return '';
+    const floor = tradeUpFloor(this.tier, seg.id);
+    const fee = formatMoney(tradeUpPrice(this.tier));
+
+    return `
+      <div data-offer style="margin-top:var(--sp-4);padding-top:var(--sp-4);border-top:2px dashed var(--paper-line)">
+        <p class="eyebrow" style="margin-bottom:var(--sp-2)">Not what you hoped for?</p>
+        <p style="margin:0 0 var(--sp-3);font-size:var(--t-sm)">
+          <b>Trade it up for ${fee}</b> (10% of the box). You give up the
+          ${seg.label} and draw again from a pool with it &mdash; and everything
+          below it &mdash; removed.
+        </p>
+        <div class="odds-bar" role="img" aria-label="Trade Up odds: ${pool.map((r) => `${r.label} ${r.pct}%`).join(', ')}">
+          ${pool.map((r) => `<span class="odds-bar__seg" data-rarity="${r.id}" style="width:${r.pct}%" title="${r.label} ${r.pct}%"></span>`).join('')}
+        </div>
+        <div class="odds-legend" style="margin-top:var(--sp-3)">
+          ${pool.map((r) => `<span><span class="dot" data-rarity="${r.id}" style="background:${r.color}"></span>${r.label} ${r.pct}%</span>`).join('')}
+        </div>
+        <p class="pill pill--sage" style="margin:var(--sp-3) 0">
+          ${icon('shield')} Guaranteed upgrade &mdash; worst case is ${floor.label}
+        </p>
+        <p class="muted" style="margin:0 0 var(--sp-3);font-size:var(--t-xs)">
+          You cannot land lower than what you traded, so there is nothing to lose
+          and nothing to chase. Vintage Rare is never a Trade Up outcome &mdash;
+          it's too scarce to sell a shortcut to. The ${seg.label} you give up goes
+          back into our pool for another box, not in a bin.
+        </p>
+        <div class="cluster">
+          <button class="btn btn--sun" type="button" data-trade-up>Trade up for ${fee}</button>
+          <button class="link-btn" type="button" data-keep-it>Keep the ${seg.label}</button>
+        </div>
+      </div>`;
+  }
+
+  /** Running ledger of Trade Up spend, so the total is never hidden. */
+  ledgerHTML() {
+    if (!this.tradeUps) return '';
+    const given = this.tradedAway.map((r) => r.label).join(', ');
+    return `
+      <p class="muted" style="margin:var(--sp-3) 0 0;font-size:var(--t-xs)">
+        <b>Trade Up ledger:</b> ${this.tradeUps} used &middot;
+        ${formatMoney(this.extraSpend)} extra &middot; gave up ${given}
+        (re-circulated, not discarded) &middot; box total
+        ${formatMoney(this.tier.price + this.extraSpend)}.
+        <br>Press <b>Spin</b> for a fresh slot at base odds.
+      </p>`;
   }
 
   resize() {
@@ -207,8 +374,10 @@ class Wheel {
   spin() {
     if (this.spinning) return;
 
-    /* 1. Decide the outcome up front, from the published table. */
-    const rarityId = drawRarity(this.tier.odds);
+    /* 1. Decide the outcome up front, from whatever table is on the wheel —
+          the base tier odds, or a Trade Up pool. Either way the draw uses the
+          same percentages the segments were drawn from. */
+    const rarityId = drawRarity(this.currentOdds());
     const segIndex = this.segments.findIndex((s) => s.id === rarityId);
     const seg = this.segments[segIndex];
 
@@ -310,13 +479,15 @@ class Wheel {
   recordResult(seg) {
     this.spins += 1;
     this.tally[seg.id] = (this.tally[seg.id] || 0) + 1;
+    this.lastResult = seg;
     this.renderTally();
 
     if (this.resultEl) {
       const example = pickOne(seg.examples);
+      const traded = this.tradeUps > 0;
       this.resultEl.classList.add('is-hit');
       this.resultEl.innerHTML = `
-        <p class="eyebrow">You landed on</p>
+        <p class="eyebrow">${traded ? 'After trading up, you landed on' : 'You landed on'}</p>
         <span class="chip" data-rarity="${seg.id}" style="align-self:flex-start">
           <span class="dot" data-rarity="${seg.id}" style="background:${seg.color}"></span>
           ${seg.label} &middot; ${seg.pct}% chance
@@ -325,7 +496,9 @@ class Wheel {
         <p class="wheel-result__example">${seg.blurb}</p>
         <p class="wheel-result__example" style="margin-top:var(--sp-3)">
           <b>A real one from last month:</b> ${example} &mdash; ${seg.resaleBand}.
-        </p>`;
+        </p>
+        ${this.ledgerHTML()}
+        ${this.tradeUpOfferHTML(seg)}`;
       this.resultEl.setAttribute('aria-live', 'polite');
     }
 
