@@ -88,7 +88,8 @@ the implementation in `assets/js/wheel.js`:
    the published rate, so the maths is checkable on the spot.
 
 Supporting this, the site deliberately omits loot-box mechanics: no countdown timers,
-no streak bonuses, no paid re-rolls, no artificial scarcity. `impact.html` also declines
+no streak bonuses, no artificial scarcity, and no paid re-roll with a downside (see
+[Trade Up](#trade-up) below). `impact.html` also declines
 to publish per-box water or CO₂ figures, on the grounds that the conversion factors for
 garment reuse vary too widely to state one honestly — and says that out loud rather than
 quietly omitting it.
@@ -111,6 +112,46 @@ remaining pieces are guaranteed everyday staples, not lottery tickets.
 "Chance of ≥1 standout" is `1 − (P(everyday))^featureSlots`, computed by
 `standoutChancePerBox()` rather than hardcoded. For Classic:
 `1 − 0.35² = 87.8%`.
+
+### Trade Up
+
+A paid second chance on a feature slot, built specifically so it is **not** a re-roll.
+
+If a slot lands on Everyday Staple or Seasonal Pick, the customer can pay 10% of the box
+price to give that piece back and draw again from a pool with that outcome *and everything
+below it* removed. Because the floor is raised, the result **cannot be worse** than what
+was given up — it's a guaranteed upgrade, so there is no loss to chase.
+
+| Box | Give up | Draw from | Worst case | Fee |
+|---|---|---|---|---|
+| Starter | Everyday | Seasonal 58.2% · Statement 30.2% · Designer 11.6% | Seasonal | $1.00 |
+| Starter | Seasonal | Statement 72.2% · Designer 27.8% | Statement | $1.00 |
+| Classic | Everyday | Seasonal 42.4% · Statement 37.3% · Designer 20.3% | Seasonal | $2.20 |
+| Classic | Seasonal | Statement 64.7% · Designer 35.3% | Statement | $2.20 |
+| Premium | Seasonal | Statement 53.8% · Designer 46.2% | Statement | $4.50 |
+
+Three constraints, all in `TRADE_UP` in `site-data.js`:
+
+1. **`maxPerSlot: 1`** — hard cap, no escalating pricing. Maximum add-on is 10% per slot.
+2. **`eligibleFrom: ['everyday', 'seasonal']`** — only the outcomes that actually
+   disappoint. You cannot trade up from a good result to farm a better one.
+3. **`protected: ['rare']`** — Vintage Rare is never a Trade Up outcome. It is the
+   scarcest stock and it is what Premium's price is built on; selling a $2.20 shortcut
+   to it would break the price ladder and drain inventory that Premium boxes are
+   promised.
+
+Why this is profitable rather than a giveaway: garments are bought **by the pound**, so
+upgrading a slot barely moves COGS — the binding constraint is inventory, not cash. And
+the traded-back garment is re-graded into the pool rather than destroyed, so the fee is
+earned against near-zero marginal cost. Customer strictly gains, business gains margin,
+nothing is wasted.
+
+`site-data.js` asserts at load that every Trade Up pool sums to 100% **and** that its
+floor outcome strictly outranks the outcome traded away — if a future edit breaks the
+guarantee, the console says so.
+
+Trade Up is offered post-delivery, on the order page, once the customer has handled the
+real garment — deliberately not from an animation before the box ships.
 
 ### Sustainability score
 
@@ -265,6 +306,16 @@ On the Premium tier the wheel has only four segments — the Everyday Staple wed
 physically absent, which is what "feature slots never land on a basic" means.
 
 ![Premium product page](docs/screenshots/07-box-premium.png)
+
+### Trade Up
+
+The offer only appears on an Everyday Staple or Seasonal Pick result. It shows the exact
+pool, the floor guarantee, and the fee before anything is committed — and Vintage Rare is
+visibly absent from the pool.
+
+![Trade Up offer](docs/screenshots/40-trade-up-offer.png)
+
+![Trade Up odds published in the FAQ](docs/screenshots/41-faq-trade-up.png)
 
 ### Tiers and comparison
 

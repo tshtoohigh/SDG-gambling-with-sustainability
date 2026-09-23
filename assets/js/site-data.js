@@ -278,3 +278,134 @@ function pickOne(list) {
     }
   });
 })();
+
+
+/* ==========================================================================
+   Trade Up
+   --------------------------------------------------------------------------
+   A paid second chance on a feature slot that is deliberately NOT a re-roll.
+
+   The distinction matters, and it is the whole reason this mechanic is
+   defensible on a site that publishes its odds:
+
+   - A re-roll can land you somewhere worse. That makes it a gamble, it makes
+     disappointment refundable-feeling, and it rewards chasing.
+   - A Trade Up removes the outcome you rejected *and everything below it*,
+     so the result is a GUARANTEED STRICT UPGRADE. You cannot lose. There is
+     nothing to chase, because there is no bad outcome to chase away from.
+
+   Three constraints keep it from becoming loot-box mechanics:
+
+   1. Capped at `maxPerSlot`. Spend has a hard ceiling per box. No escalation,
+      no streaks, no "one more go" pricing.
+   2. Only available FROM the two outcomes that actually disappoint
+      (Everyday Staple, Seasonal Pick). You cannot trade up from a good result
+      to farm a better one.
+   3. Vintage Rare is never a Trade Up outcome. It is the scarcest thing we
+      stock, it is what the Premium tier's price is built on, and selling a
+      $2.20 shortcut to it would both break that price ladder and drain the
+      inventory Premium boxes are promised.
+
+   Business note: the traded garment is not destroyed. It is re-graded back
+   into the pool (see the returns policy), so the fee is earned against a
+   near-zero marginal cost and nothing is wasted.
+   ========================================================================== */
+
+/* Rarity ladder, ascending by market value. Trade Up walks up this. */
+const RARITY_RANK = { everyday: 1, seasonal: 2, statement: 3, designer: 4, rare: 5 };
+
+const TRADE_UP = {
+  enabled: true,
+  pricePct: 0.10,                            // 10% of the box price
+  maxPerSlot: 1,                             // hard cap — not escalating
+  eligibleFrom: ['everyday', 'seasonal'],    // only the disappointing outcomes
+  protected: ['rare'],                       // never a Trade Up result
+};
+
+/** Trade Up fee for a tier, rounded to the nearest 5c. */
+function tradeUpPrice(tier) {
+  return Math.round(tier.price * TRADE_UP.pricePct * 20) / 20;
+}
+
+function formatMoney(n) {
+  return Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`;
+}
+
+/** Can a slot showing this outcome be traded up at all? */
+function canTradeUpFrom(rarityId) {
+  return TRADE_UP.enabled && TRADE_UP.eligibleFrom.includes(rarityId);
+}
+
+/**
+ * Largest-remainder rounding to 1dp that still sums to exactly 100.
+ * Needed because the wheel draws its arcs from the published percentages, so
+ * those percentages must total 100 or the geometry stops matching the label.
+ */
+function pctsSummingTo100(weights) {
+  const total = weights.reduce((a, w) => a + w, 0);
+  const raw = weights.map((w) => (w / total) * 100);
+  const out = raw.map((v) => Math.floor(v * 10) / 10);
+  const deficit = Math.round((100 - out.reduce((a, v) => a + v, 0)) * 10);
+  const byRemainder = raw
+    .map((v, i) => [i, v - out[i]])
+    .sort((a, b) => b[1] - a[1]);
+  for (let k = 0; k < deficit; k++) {
+    const i = byRemainder[k % byRemainder.length][0];
+    out[i] = Math.round((out[i] + 0.1) * 10) / 10;
+  }
+  return out;
+}
+
+/**
+ * The pool a Trade Up draws from: every outcome ranked strictly above
+ * `fromId`, minus protected rarities, renormalised to sum to 100%.
+ * Returns [] when no upgrade is available.
+ */
+function tradeUpPool(tier, fromId) {
+  const floor = RARITY_RANK[fromId];
+  const ids = RARITY_ORDER.filter(
+    (id) =>
+      RARITY_RANK[id] > floor &&
+      !TRADE_UP.protected.includes(id) &&
+      (tier.odds[id] || 0) > 0
+  );
+  if (!ids.length) return [];
+  const pcts = pctsSummingTo100(ids.map((id) => tier.odds[id]));
+  return ids.map((id, i) => ({ ...RARITIES[id], pct: pcts[i] }));
+}
+
+/** The worst thing a Trade Up from `fromId` can produce — the floor guarantee. */
+function tradeUpFloor(tier, fromId) {
+  const pool = tradeUpPool(tier, fromId);
+  if (!pool.length) return null;
+  return pool.reduce((lowest, r) =>
+    RARITY_RANK[r.id] < RARITY_RANK[lowest.id] ? r : lowest
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Integrity check for Trade Up pools — same guard rail as the base odds.
+   -------------------------------------------------------------------------- */
+(function assertTradeUpOdds() {
+  TIERS.forEach((tier) => {
+    TRADE_UP.eligibleFrom.forEach((fromId) => {
+      if (!(tier.odds[fromId] > 0)) return;      // outcome can't occur in this tier
+      const pool = tradeUpPool(tier, fromId);
+      if (!pool.length) return;
+      const sum = Math.round(pool.reduce((a, r) => a + r.pct, 0) * 10) / 10;
+      if (sum !== 100) {
+        console.error(
+          `[Second Spin] Trade Up pool for ${tier.id} from "${fromId}" sums to ` +
+          `${sum}%, not 100%. Fix pctsSummingTo100() in assets/js/site-data.js.`
+        );
+      }
+      const floor = tradeUpFloor(tier, fromId);
+      if (RARITY_RANK[floor.id] <= RARITY_RANK[fromId]) {
+        console.error(
+          `[Second Spin] Trade Up from "${fromId}" in ${tier.id} can land on ` +
+          `"${floor.id}", which is not an upgrade. The strict-upgrade guarantee is broken.`
+        );
+      }
+    });
+  });
+})();

@@ -173,6 +173,89 @@ async function run() {
   await sleep(150);
   log(form.querySelector('[data-form-msg]').dataset.state === 'ok', 'index.html: valid email accepted');
 
+  /* ---------------- 9. Trade Up ---------------- */
+  win = await loadFrame('/box.html?tier=classic');
+  doc = win.document;
+  await sleep(300);
+  const w2 = win.SecondSpin.wheels[0];
+
+  /* Force a known low outcome so the offer is guaranteed to appear. */
+  const everyday = w2.segments.find(s => s.id === 'everyday');
+  w2.recordResult(everyday);
+  await sleep(150);
+
+  const offer = doc.querySelector('[data-offer]');
+  log(!!offer, 'tradeup: offer appears after an Everyday Staple result');
+  log(offer && /\$2\.20/.test(offer.textContent), 'tradeup: fee shown as $2.20 (10% of $22)');
+  log(offer && /Guaranteed upgrade/i.test(offer.textContent), 'tradeup: states the guaranteed-upgrade floor');
+  log(offer && /worst case is Seasonal Pick/i.test(offer.textContent), 'tradeup: names the floor outcome correctly');
+  log(offer && !/Vintage Rare \d/.test(offer.textContent), 'tradeup: Vintage Rare absent from the offered pool');
+  if (offer) {
+    const segs = Array.from(offer.querySelectorAll('.odds-bar__seg'));
+    const total = segs.reduce((a, s) => a + parseFloat(s.style.width), 0);
+    log(Math.abs(total - 100) < 0.05, `tradeup: offered pool widths total 100% (${total.toFixed(1)}%)`);
+    log(!segs.some(s => s.dataset.rarity === 'rare'), 'tradeup: no rare segment in the offered bar');
+  }
+
+  /* Declining leaves the result intact */
+  doc.querySelector('[data-keep-it]').click();
+  await sleep(150);
+  log(!doc.querySelector('[data-offer]'), 'tradeup: "Keep it" dismisses the offer');
+
+  /* Take the trade and verify it can only improve */
+  w2.recordResult(everyday);
+  await sleep(150);
+  doc.querySelector('[data-trade-up]').click();
+  await sleep(500);
+  log(w2.tradeUps === 1, `tradeup: counter incremented (${w2.tradeUps})`);
+  log(Math.abs(w2.extraSpend - 2.2) < 0.001, `tradeup: ledger charged $2.20 (${w2.extraSpend})`);
+  const rank = win.SecondSpin.RARITY_RANK || { everyday:1, seasonal:2, statement:3, designer:4, rare:5 };
+  log(rank[w2.lastResult.id] > rank.everyday,
+      `tradeup: result is a STRICT upgrade on Everyday (got ${w2.lastResult.label})`);
+  log(w2.lastResult.id !== 'rare', 'tradeup: result is never Vintage Rare');
+  log(/Trade Up ledger/.test(doc.querySelector('[data-wheel-result]').textContent),
+      'tradeup: running spend ledger is displayed');
+
+  /* Cap enforcement */
+  const seasonalNow = w2.segments.find(s => s.id === 'seasonal');
+  if (seasonalNow) {
+    w2.recordResult(seasonalNow);
+    await sleep(150);
+    const capped = doc.querySelector('[data-offer]');
+    log(capped && /capped|already used/i.test(capped.textContent),
+        'tradeup: second trade on same slot is refused by the cap');
+    log(!doc.querySelector('[data-trade-up]'), 'tradeup: no second trade-up button offered');
+  }
+
+  /* Spinning again must return to base odds, not keep the upgraded pool */
+  doc.querySelector('[data-wheel-spin]').click();
+  await sleep(500);
+  log(w2.poolFrom === null, 'tradeup: main Spin resets to base odds');
+  log(w2.segments.length === 5, `tradeup: base wheel restored to 5 segments (${w2.segments.length})`);
+  log(w2.tradeUps === 0 && w2.extraSpend === 0, 'tradeup: ledger cleared on fresh slot');
+
+  /* Every trade-up arc must still equal its published percentage */
+  w2.recordResult(w2.segments.find(s => s.id === 'everyday'));
+  await sleep(100);
+  doc.querySelector('[data-trade-up]').click();
+  await sleep(500);
+  const geomBad = w2.segments.filter(s => Math.abs((s.arc / (Math.PI * 2)) * 100 - s.pct) > 0.001);
+  log(geomBad.length === 0, `tradeup: arc angles still equal published % in trade pool (${geomBad.length} bad)`);
+  const arcSum = w2.segments.reduce((a, s) => a + s.arc, 0);
+  log(Math.abs(arcSum - Math.PI * 2) < 1e-9, 'tradeup: trade pool arcs fill exactly 360°');
+
+  /* Premium: Everyday is impossible, so no trade-up path from it */
+  win = await loadFrame('/box.html?tier=premium');
+  doc = win.document;
+  await sleep(300);
+  const w3 = win.SecondSpin.wheels[0];
+  log(!w3.segments.some(s => s.id === 'everyday'), 'tradeup/premium: no Everyday segment exists to trade from');
+  const premSeasonal = w3.segments.find(s => s.id === 'seasonal');
+  w3.recordResult(premSeasonal);
+  await sleep(150);
+  const premOffer = doc.querySelector('[data-offer]');
+  log(premOffer && /\$4\.50/.test(premOffer.textContent), 'tradeup/premium: fee shown as $4.50 (10% of $45)');
+
   const failed = lines.filter(l => l.startsWith('FAIL')).length;
   lines.push('');
   lines.push(`TOTAL: ${lines.filter(l => l.startsWith('PASS')).length} passed, ${failed} failed`);

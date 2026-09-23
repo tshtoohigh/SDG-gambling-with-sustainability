@@ -66,6 +66,7 @@
       </p>
       <div class="cluster" style="margin-top:var(--sp-5)">
         <a class="btn btn--sm btn--ghost" href="#odds">Odds &amp; fairness</a>
+        <a class="btn btn--sm btn--ghost" href="#tradeup">Trade Up</a>
         <a class="btn btn--sm btn--ghost" href="#sourcing">Sourcing &amp; quality</a>
         <a class="btn btn--sm btn--ghost" href="#sizing">Sizing</a>
         <a class="btn btn--sm btn--ghost" href="#shipping">Shipping</a>
@@ -197,9 +198,164 @@
             </p>
             <p>
               We also deliberately omit the mechanics that make loot boxes compulsive: no streak
-              bonuses, no countdown timers, no "one slot left" pressure, no paid re-rolls, and
-              subscriptions capped at one box per month. If you want to stop, there's nothing to
-              unwind.
+              bonuses, no countdown timers, no "one slot left" pressure, and subscriptions capped
+              at one box per month. If you want to stop, there's nothing to unwind.
+            </p>
+            <p>
+              We do sell one paid second chance, <a href="#tradeup">Trade Up</a>, and it is
+              deliberately built so it isn't a re-roll: it can only ever improve your outcome, and
+              it's capped at one per feature slot. There's no version of it where you pay and end
+              up worse off, which is the thing that makes re-rolls worth chasing.
+            </p>
+          </div>
+        </details>
+      </div>
+
+      <!-- ===================== TRADE UP ===================== -->
+      <div class="faq-group" id="tradeup">
+        <div class="faq-group__title">
+          <span data-icon="recycle"></span>
+          <h2 style="margin:0;font-size:var(--t-xl)">Trade Up</h2>
+        </div>
+
+        <details class="qa" open>
+          <summary>What is Trade Up? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              If a feature slot lands on an <b>Everyday Staple</b> or a <b>Seasonal Pick</b>, you
+              can pay 10% of the box price to give that piece back and draw again from a pool with
+              it &mdash; and everything below it &mdash; removed.
+            </p>
+            <p>
+              That removal is the whole point: because everything at or below your result is taken
+              out, <b>the new draw cannot be worse than what you gave up</b>. It's a guaranteed
+              upgrade, not a gamble.
+            </p>
+            <p>
+              The fee is $1.00 on Starter, $2.20 on Classic, $4.50 on Premium. The piece you trade
+              back isn't destroyed &mdash; it's re-graded into the pool for someone else's box.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>Isn't that just a paid re-roll? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              No, and the difference is the reason we were willing to build it. A re-roll can land
+              you somewhere worse, which is exactly what makes re-rolls worth chasing &mdash; you
+              pay again to undo a loss you just paid for. Trade Up has no downside outcome, so
+              there is nothing to chase.
+            </p>
+            <p>Three deliberate limits keep it that way:</p>
+            <ul>
+              <li>
+                <b>One per feature slot.</b> Hard cap. No escalating prices, no "one more go". The
+                most you can ever add to a box is 10% per slot.
+              </li>
+              <li>
+                <b>Only from the two disappointing outcomes.</b> You can't trade up from a good
+                result to farm a better one.
+              </li>
+              <li>
+                <b>Vintage Rare is never a Trade Up outcome.</b> It's the scarcest thing we stock,
+                and it's what the Premium tier's price is built on. Selling a $2.20 shortcut to it
+                would be dishonest to Premium buyers and would drain the stock their boxes are
+                promised. Vintage Rare is only ever won on your original odds.
+              </li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>What are the exact Trade Up odds? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              Published, same as everything else. These are the renormalised pools after the
+              removal, and each row sums to 100%.
+            </p>
+            <div style="overflow-x:auto">
+              <table class="odds-table" style="min-width:560px">
+                <caption>Trade Up pools. The wheel draws these arcs to scale, exactly as it does the base odds.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Box</th>
+                    <th scope="col">You give up</th>
+                    <th scope="col" style="text-align:left">You draw from</th>
+                    <th scope="col">Worst case</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row" style="text-align:left">Starter<br><span class="muted">$1.00</span></th>
+                    <td><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday</span></td>
+                    <td style="text-align:left">Seasonal 58.2% &middot; Statement 30.2% &middot; Designer 11.6%</td>
+                    <td>Seasonal</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" style="text-align:left">Starter</th>
+                    <td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal</span></td>
+                    <td style="text-align:left">Statement 72.2% &middot; Designer 27.8%</td>
+                    <td>Statement</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" style="text-align:left">Classic<br><span class="muted">$2.20</span></th>
+                    <td><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday</span></td>
+                    <td style="text-align:left">Seasonal 42.4% &middot; Statement 37.3% &middot; Designer 20.3%</td>
+                    <td>Seasonal</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" style="text-align:left">Classic</th>
+                    <td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal</span></td>
+                    <td style="text-align:left">Statement 64.7% &middot; Designer 35.3%</td>
+                    <td>Statement</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" style="text-align:left">Premium<br><span class="muted">$4.50</span></th>
+                    <td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal</span></td>
+                    <td style="text-align:left">Statement 53.8% &middot; Designer 46.2%</td>
+                    <td>Statement</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="muted">
+              Premium has no Everyday row because its feature slots never land on a basic in the
+              first place. Note that Vintage Rare appears nowhere in this table &mdash; that's the
+              point.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>When do I decide? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              After your box arrives and you've handled the actual garment &mdash; not from a
+              screen before it ships. You open the box, and if a feature piece isn't for you, Trade
+              Up is offered on your order page for 30 days alongside the free swap.
+            </p>
+            <p>
+              We did it that way round on purpose. Deciding while looking at a real garment is a
+              different act from deciding while watching an animation, and only one of those is a
+              considered choice. The wheel on this site remains a
+              <a href="#odds">simulator</a>: you can spin it and preview Trade Up for free,
+              forever, without spending anything.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>What's the difference between Trade Up and a free swap? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              A <b>free swap</b> (included on Classic and Premium) is for fit &mdash; you get the
+              same kind of piece in your other size, at no cost. Use it when something doesn't fit.
+            </p>
+            <p>
+              <b>Trade Up</b> is for taste, and it's paid &mdash; you're buying a step up the
+              rarity ladder. Use it when something fits fine but bores you. They're independent:
+              using one doesn't consume the other.
             </p>
           </div>
         </details>
