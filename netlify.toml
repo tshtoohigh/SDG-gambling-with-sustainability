@@ -1,0 +1,30 @@
+# Netlify configuration
+#
+# This is a plain static site: no bundler, no dependencies, no build step.
+# There is deliberately no [build.command] — there is nothing to build.
+
+[build]
+  # Serve the repository root, where index.html lives.
+  publish = "."
+
+
+# ---------------------------------------------------------------------------
+# Caching
+# ---------------------------------------------------------------------------
+# Intentionally NOT setting a long `immutable` max-age on /assets/*.
+# Asset filenames are not content-hashed (styles.css, not styles.a1b2c3.css),
+# so a far-future cache would pin visitors to stale CSS/JS after a deploy.
+# Netlify's default ETag revalidation is the correct behaviour here.
+
+
+# ---------------------------------------------------------------------------
+# Headers
+# ---------------------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # SAMEORIGIN rather than DENY: tests/interaction-test.html drives the real
+    # pages through same-origin iframes, and DENY would break it.
+    X-Frame-Options = "SAMEORIGIN"
