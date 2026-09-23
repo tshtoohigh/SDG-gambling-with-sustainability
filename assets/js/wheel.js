@@ -227,6 +227,31 @@ class Wheel {
       </div>`;
   }
 
+  /**
+   * A representative catalogue garment for the outcome just landed on, so the
+   * rarity label means something concrete rather than being an abstract word.
+   * Degrades silently if item-catalog.js isn't loaded on this page.
+   */
+  sampleItemHTML(seg) {
+    if (typeof ITEM_CATALOG === 'undefined' || typeof itemsByRarity !== 'function') return '';
+    const pool = itemsByRarity(seg.id);
+    if (!pool.length) return '';
+    const item = pickOne(pool);
+    return `
+      <div class="item-thumb">
+        <span class="item-thumb__frame" style="background:color-mix(in srgb, ${seg.color} 16%, var(--paper))">
+          <img class="item-thumb__img" src="${item.file}" width="48" height="48"
+               alt="Pixel-art illustration of a ${item.colourway.toLowerCase()} ${item.typeLabel.toLowerCase()}">
+        </span>
+        <span class="item-thumb__body">
+          <b>${item.name}</b>
+          ${item.colourway} &middot; ${item.pattern} &mdash; one of
+          <a href="lookbook.html?tag=${seg.id}">${pool.length} ${seg.label} pieces</a>
+          in the catalogue.
+        </span>
+      </div>`;
+  }
+
   /** Running ledger of Trade Up spend, so the total is never hidden. */
   ledgerHTML() {
     if (!this.tradeUps) return '';
@@ -497,6 +522,7 @@ class Wheel {
         <p class="wheel-result__example" style="margin-top:var(--sp-3)">
           <b>A real one from last month:</b> ${example} &mdash; ${seg.resaleBand}.
         </p>
+        ${this.sampleItemHTML(seg)}
         ${this.ledgerHTML()}
         ${this.tradeUpOfferHTML(seg)}`;
       this.resultEl.setAttribute('aria-live', 'polite');

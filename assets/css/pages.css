@@ -541,3 +541,132 @@
   margin-inline: 0.15em;
   color: var(--moss);
 }
+
+
+/* --------------------------------------------------------------------------
+   Item lookbook — pixel-art garment catalogue
+   -------------------------------------------------------------------------- */
+.filter-bar {
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  padding: var(--sp-4);
+  background: var(--paper-2);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-lg);
+  margin-bottom: var(--sp-5);
+}
+.filter-bar__group { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+.filter-bar__label {
+  font-size: var(--t-xs); font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-soft); margin-right: var(--sp-2);
+}
+.filter-btn {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: 0.45em 0.9em;
+  font-size: var(--t-xs); font-weight: 800;
+  background: var(--paper); color: var(--ink);
+  border: 2px solid var(--ink); border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease-bounce), background-color var(--dur-fast) linear;
+}
+.filter-btn:hover { transform: translateY(-2px); }
+.filter-btn[aria-pressed="true"] { background: var(--forest); color: var(--paper); box-shadow: var(--sticker-sm); }
+.filter-btn[aria-pressed="true"] .dot { box-shadow: 0 0 0 2px var(--paper); }
+.filter-btn__count { opacity: 0.65; font-variant-numeric: tabular-nums; }
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: var(--sp-4);
+  align-items: stretch;
+}
+.item-tile {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-md);
+  box-shadow: var(--sticker-sm);
+  transition: transform var(--dur) var(--ease-bounce), box-shadow var(--dur) var(--ease-bounce);
+}
+.item-tile:hover { transform: translate(-2px, -3px) rotate(-0.5deg); box-shadow: 6px 6px 0 var(--ink); }
+
+.item-tile__frame {
+  position: relative;
+  /* width:100% is load-bearing. Without it the frame is auto-width, the
+     image's percentage width resolves against it, and the two form a circular
+     dependency that collapses the frame to a few dozen pixels. */
+  width: 100%;
+  aspect-ratio: 1;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--paper-line);
+  overflow: hidden;
+}
+/* Per-rarity wash behind the sprite, so the tag is legible at a glance */
+.item-tile__frame[data-rarity="rare"]      { background: color-mix(in srgb, var(--r-rare) 16%, var(--paper)); }
+.item-tile__frame[data-rarity="designer"]  { background: color-mix(in srgb, var(--r-designer) 22%, var(--paper)); }
+.item-tile__frame[data-rarity="statement"] { background: color-mix(in srgb, var(--r-statement) 15%, var(--paper)); }
+.item-tile__frame[data-rarity="seasonal"]  { background: color-mix(in srgb, var(--r-seasonal) 15%, var(--paper)); }
+.item-tile__frame[data-rarity="everyday"]  { background: color-mix(in srgb, var(--r-everyday) 14%, var(--paper)); }
+
+/* Pixel art must never be smoothed. */
+.item-tile__img,
+.item-thumb__img {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  width: 84%; height: auto;
+}
+.item-tile:hover .item-tile__img { transform: scale(1.06); }
+.item-tile__img { transition: transform var(--dur) var(--ease-bounce); }
+
+.item-tile__name {
+  font-size: var(--t-xs); font-weight: 800; line-height: 1.35;
+  overflow-wrap: anywhere;              /* long fabric names must not overflow */
+}
+.item-tile__meta {
+  font-size: 0.7rem; color: var(--ink-soft); line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.item-tile__tag { align-self: flex-start; margin-top: auto; }
+.item-tile__tag .chip { font-size: 0.62rem; padding: 0.2em 0.6em; }
+
+.lookbook-empty {
+  grid-column: 1 / -1;
+  text-align: center; padding: var(--sp-8) var(--sp-4);
+  color: var(--ink-soft);
+  border: 2px dashed var(--paper-line);
+  border-radius: var(--r-lg);
+}
+
+/* Breadth-vs-odds explainer sits right above the grid */
+.breadth-note {
+  display: flex; gap: var(--sp-3); align-items: flex-start;
+  font-size: var(--t-sm);
+  background: color-mix(in srgb, var(--sun) 15%, var(--paper));
+  border: 2px solid var(--ink);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-5);
+}
+.breadth-note svg { width: 22px; height: 22px; flex: none; margin-top: 2px; }
+
+/* Sample-item thumbnail shown in the wheel result panel */
+.item-thumb {
+  display: flex; gap: var(--sp-3); align-items: center;
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--paper-2);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-md);
+}
+.item-thumb__frame {
+  width: 62px; height: 62px; flex: none;
+  display: grid; place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+}
+.item-thumb__body { min-width: 0; font-size: var(--t-xs); line-height: 1.45; }
+.item-thumb__body b { display: block; font-size: var(--t-sm); }

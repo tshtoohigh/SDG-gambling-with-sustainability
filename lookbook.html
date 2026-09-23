@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item lookbook — 200 garment types by tag | Second Spin</title>
+<meta name="description" content="Browse every kind of garment in our catalogue, grouped by rarity tag, so you can see what Vintage Rare, Designer Label, Statement Piece, Seasonal Pick and Everyday Staple actually mean.">
+<meta name="theme-color" content="#1e4430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19' fill='%231e4430'/%3E%3Cpath d='M20 20 L20 5 A15 15 0 0 1 34.3 15.4 Z' fill='%23f4b429'/%3E%3Cpath d='M20 20 L34.3 15.4 A15 15 0 0 1 20 35 Z' fill='%23e4572e'/%3E%3Cpath d='M20 20 L20 35 A15 15 0 0 1 5.7 15.4 Z' fill='%233e9bc0'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ============================ HEADER ============================ -->
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="index.html">
+      <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#16241b"/>
+        <path d="M20 20 L20 4 A16 16 0 0 1 35.2 15.1 Z" fill="#7b5ea7"/>
+        <path d="M20 20 L35.2 15.1 A16 16 0 0 1 29.4 32.9 Z" fill="#f4b429"/>
+        <path d="M20 20 L29.4 32.9 A16 16 0 0 1 10.6 32.9 Z" fill="#e4572e"/>
+        <path d="M20 20 L10.6 32.9 A16 16 0 0 1 4.8 15.1 Z" fill="#3e9bc0"/>
+        <path d="M20 20 L4.8 15.1 A16 16 0 0 1 20 4 Z" fill="#3c7a4e"/>
+        <circle cx="20" cy="20" r="7.6" fill="#f7f2e6" stroke="#16241b" stroke-width="2"/>
+        <path d="M16.8 23c0-3.3 2.2-5.7 6.8-6.1.4 4.5-2.1 6.5-5.3 6.5h-1.5z" fill="#3c7a4e"/>
+      </svg>
+      <span>Second Spin</span>
+    </a>
+
+    <nav class="nav" id="site-nav" data-nav aria-label="Main">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="shop.html">Shop boxes</a></li>
+        <li><a class="nav__link" href="lookbook.html" aria-current="page">Lookbook</a></li>
+        <li><a class="nav__link" href="impact.html">Our impact</a></li>
+        <li><a class="nav__link" href="about.html">Our story</a></li>
+        <li><a class="nav__link" href="faq.html">FAQ</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="btn btn--ghost btn--sm cart-btn" type="button" data-cart-open aria-label="Open your box bag">
+        <span data-icon="cart" style="width:20px;display:block"></span>
+        <span class="cart-btn__count" data-cart-count>0</span>
+      </button>
+      <a class="btn btn--sun btn--sm header-cta" href="shop.html">Shop boxes</a>
+      <button class="btn btn--ghost btn--sm nav-toggle" type="button" data-nav-toggle
+              aria-expanded="false" aria-controls="site-nav" aria-label="Toggle menu"></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============================ PAGE HEAD ============================ -->
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">The lookbook</p>
+      <h1>200 real garment types, sorted by tag</h1>
+      <p class="lead">
+        "Vintage Rare" and "Everyday Staple" are meaningless until you can see them. So here
+        is the whole catalogue &mdash; every kind of piece we stock, grouped by the tag it
+        carries, so you know what each outcome on the wheel actually puts in your box.
+      </p>
+      <div class="cluster" style="margin-top:var(--sp-5)">
+        <a class="btn btn--sm btn--berry" href="shop.html">Shop the boxes</a>
+        <a class="btn btn--sm btn--ghost" href="faq.html#odds">See the odds</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+
+      <!-- The one thing people will misread, addressed up front -->
+      <div class="breadth-note">
+        <span data-icon="warning"></span>
+        <span>
+          <b>These counts are catalogue breadth, not your chances.</b>
+          We stock 60 kinds of Everyday Staple and 20 kinds of Vintage Rare &mdash; that's how
+          many <em>different</em> items exist in each tag, not how likely you are to get one.
+          Your actual chances are the published odds: 6% Vintage Rare on a Classic Box feature
+          slot, for example. Breadth and probability are different numbers and we're not going
+          to let one imply the other.
+          <a href="faq.html#odds">The real odds table</a>
+        </span>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-bar__group" data-filter-rarity role="group" aria-label="Filter by rarity tag">
+          <span class="filter-bar__label">Tag</span>
+        </div>
+        <div class="filter-bar__group" data-filter-category role="group" aria-label="Filter by garment category"
+             style="width:100%;border-top:1px dashed var(--paper-line);padding-top:var(--sp-3);margin-top:var(--sp-1)">
+          <span class="filter-bar__label">Type</span>
+        </div>
+      </div>
+
+      <p class="muted" style="margin-bottom:var(--sp-4)">
+        Showing <b data-lookbook-count>200 items</b>.
+        Illustrations are pixel art, not photographs &mdash; every box is packed from
+        one-of-a-kind secondhand stock, so we can't photograph a garment you might receive
+        before we've found it. These show the <em>kind</em> of piece each tag means.
+      </p>
+
+      <div class="item-grid" data-lookbook-grid>
+        <noscript>
+          <p class="lookbook-empty">
+            The lookbook grid needs JavaScript to filter 200 items. The full odds table is
+            available without it on the <a href="faq.html#odds">FAQ page</a>, and the garment
+            sprites live in <code>assets/items/</code>.
+          </p>
+        </noscript>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= WHAT THE TAGS MEAN ======================= -->
+  <section class="section section--paper2" aria-labelledby="tags-title">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Reading the tags</p>
+        <h2 id="tags-title">What each tag actually promises</h2>
+        <p class="lead">
+          The tag is a grading decision made by a human at the bench, not a marketing label.
+          Here's the standard each one has to meet.
+        </p>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="card" style="border-left:10px solid var(--r-rare)">
+          <span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span>
+          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">Datable to before 2000</h3>
+          <p class="muted" style="margin:0">
+            Verified from construction, label typography, care-tag format and country of
+            manufacture &mdash; not from vibes. If we can't date it confidently we grade it down
+            to Statement Piece instead. 20 kinds in the catalogue; typically resells $45&ndash;180.
+          </p>
+        </div>
+        <div class="card" style="border-left:10px solid var(--r-designer)">
+          <span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span>
+          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">A recognised label, authenticated</h3>
+          <p class="muted" style="margin:0">
+            Heritage or contemporary, checked before packing, in good condition. 30 kinds in the
+            catalogue; typically resells $35&ndash;120.
+          </p>
+        </div>
+        <div class="card" style="border-left:10px solid var(--r-statement)">
+          <span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span>
+          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">Unlabelled but unforgettable</h3>
+          <p class="muted" style="margin:0">
+            Bold print, unusual cut, or a texture you won't find on a high-street rail. This is
+            also where anything we couldn't authenticate lands. 45 kinds; typically $20&ndash;60.
+          </p>
+        </div>
+        <div class="card" style="border-left:10px solid var(--r-seasonal)">
+          <span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span>
+          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">Chosen for the month you order</h3>
+          <p class="muted" style="margin:0">
+            Linen in June, brushed flannel in November. Good condition, weather-appropriate,
+            immediately wearable. 45 kinds; typically $15&ndash;40.
+          </p>
+        </div>
+        <div class="card" style="border-left:10px solid var(--r-everyday);grid-column:1/-1">
+          <span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span>
+          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">The backbone of every box &mdash; and the biggest category on purpose</h3>
+          <p class="muted" style="margin:0">
+            60 kinds, more than any other tag, because this is most of what we rescue and most of
+            what actually gets worn. Solid basics with real life left in them that were headed for
+            a bale: merino crew-necks, straight-leg denim, unpilled cotton tees. Three or four of
+            these are in every box, guaranteed, with no roll involved. Typically resells $8&ndash;25.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= CTA BAND ============================= -->
+  <section class="cta-band">
+    <div class="container container--narrow">
+      <p class="eyebrow">Seen enough?</p>
+      <h2>Now you know what's in the pool.</h2>
+      <p class="lead">
+        Spin the wheel to see your chances at each tag &mdash; free, unlimited, and it reserves
+        nothing.
+      </p>
+      <div class="cluster">
+        <a class="btn btn--lg btn--sun" href="shop.html">Pick your box</a>
+        <a class="btn btn--lg btn--ghost" href="box.html">Try the wheel</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="index.html">
+          <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="18" fill="#f7f2e6"/>
+            <path d="M20 20 L20 4 A16 16 0 0 1 35.2 15.1 Z" fill="#7b5ea7"/>
+            <path d="M20 20 L35.2 15.1 A16 16 0 0 1 29.4 32.9 Z" fill="#f4b429"/>
+            <path d="M20 20 L29.4 32.9 A16 16 0 0 1 10.6 32.9 Z" fill="#e4572e"/>
+            <path d="M20 20 L10.6 32.9 A16 16 0 0 1 4.8 15.1 Z" fill="#3e9bc0"/>
+            <path d="M20 20 L4.8 15.1 A16 16 0 0 1 20 4 Z" fill="#3c7a4e"/>
+            <circle cx="20" cy="20" r="7.6" fill="#f7f2e6" stroke="#16241b" stroke-width="2"/>
+          </svg>
+          <span>Second Spin</span>
+        </a>
+        <p class="footer-tagline">
+          Thrift blind boxes with the odds on the label. We rescue the clothing that thrift
+          stores can't shelve, and we tell you exactly what your chances are.
+        </p>
+        <form class="newsletter" data-newsletter novalidate>
+          <label class="visually-hidden" for="nl-email">Email address</label>
+          <input id="nl-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+          <button class="btn btn--sun btn--sm" type="submit">Get restock alerts</button>
+          <p class="form-msg" data-form-msg role="status"></p>
+        </form>
+      </div>
+
+      <div>
+        <h4>Shop</h4>
+        <ul class="footer-list">
+          <li><a href="box.html?tier=starter">Starter Box &mdash; $10</a></li>
+          <li><a href="box.html?tier=classic">Classic Box &mdash; $22</a></li>
+          <li><a href="box.html?tier=premium">Premium Box &mdash; $45</a></li>
+          <li><a href="shop.html">Compare tiers</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Learn</h4>
+        <ul class="footer-list">
+          <li><a href="lookbook.html">Item lookbook</a></li>
+          <li><a href="impact.html">Our impact</a></li>
+          <li><a href="about.html">Our story</a></li>
+          <li><a href="faq.html#odds">Odds &amp; fairness</a></li>
+          <li><a href="impact.html#receipts">How we count</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Support</h4>
+        <ul class="footer-list">
+          <li><a href="faq.html#shipping">Shipping</a></li>
+          <li><a href="faq.html#returns">Returns &amp; swaps</a></li>
+          <li><a href="faq.html#sizing">Sizing</a></li>
+          <li><a href="about.html#contact">Contact us</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p style="margin:0">&copy; <span data-year>2026</span> Second Spin. Odds published and version-controlled.</p>
+      <p style="margin:0">Demo site &mdash; illustrative data, no live checkout.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================ CART DRAWER ============================ -->
+<div class="drawer" data-cart-drawer role="dialog" aria-modal="true" aria-label="Your box bag">
+  <div class="drawer__scrim" data-cart-scrim></div>
+  <div class="drawer__panel">
+    <div class="drawer__head">
+      <h3 style="margin:0;font-size:var(--t-md)">Your box bag</h3>
+      <button class="modal__close" type="button" data-cart-close aria-label="Close bag" data-icon="close"></button>
+    </div>
+    <div class="drawer__body" data-cart-body></div>
+    <div class="drawer__foot" data-cart-foot hidden>
+      <div class="cart-total">
+        <span>Clothing rescued <b data-cart-lbs>0 lbs</b></span>
+        <strong data-cart-total>$0</strong>
+      </div>
+      <button class="btn btn--berry btn--block" type="button" data-checkout>Checkout</button>
+      <p class="form-msg" data-checkout-msg role="status"></p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/site-data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/item-catalog.js"></script>
+<script src="assets/js/lookbook.js"></script>
+</body>
+</html>
