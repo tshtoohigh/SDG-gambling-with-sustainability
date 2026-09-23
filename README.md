@@ -57,7 +57,7 @@ tools/
   generate-assets.py       generates the 200 garment sprites + catalogue
   verify-odds.py           cross-checks every published odds figure against site-data.js
 tests/
-  interaction-test.html    86 in-browser assertions (see Verification)
+  interaction-test.html    120 in-browser assertions (see Verification)
   screenshot-harness.html  scrolls a page to a selector for section screenshots
 ```
 
@@ -342,7 +342,7 @@ chrome --headless --no-sandbox --force-prefers-reduced-motion \
 `--force-prefers-reduced-motion` makes opens resolve synchronously, which keeps the
 assertions fast and deterministic.
 
-It covers, among other things:
+It currently runs **120 assertions**. It covers, among other things:
 
 - **every cell count equals its published proportion** (the load-bearing claim of the
   whole design), and the strip lands **dead centre** with 0.00px drift
@@ -353,6 +353,10 @@ It covers, among other things:
 - the odds modal opens, sums to 100%, discloses never-occurring outcomes, and closes
 - cart add / quantity / totals / diverted-weight display
 - `?tier=` deep links
+- the account loop: sign-in, checkout creating sealed boxes, the shape of the real
+  draw, a box refusing to open twice, live-vs-practice result copy, the vault,
+  sell-back credit maths, buyback staying below the resale floor, delivery requests,
+  credit spent at checkout, and sign-out preserving data
 - impact counters, marquee duplication, scroll reveals, newsletter validation
 
 Checks run during development and worth repeating after edits:
