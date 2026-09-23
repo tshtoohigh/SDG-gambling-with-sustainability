@@ -7,10 +7,22 @@
 <iframe id="frame" src="" style="width:1280px;height:900px;border:0"></iframe>
 
 <script>
+/* ==========================================================================
+   Drives the real pages in same-origin iframes and asserts behaviour.
+
+   Run against a served copy (same-origin iframes need HTTP, not file://):
+     python3 -m http.server 8000
+     chrome --headless --no-sandbox --force-prefers-reduced-motion \
+       --virtual-time-budget=90000 --dump-dom \
+       "http://localhost:8000/tests/interaction-test.html" | grep -E 'PASS|FAIL|TOTAL'
+
+   --force-prefers-reduced-motion makes the reel resolve synchronously, which
+   keeps assertions fast and deterministic.
+   ========================================================================== */
+
 const lines = [];
 const out = () => { document.getElementById('out').textContent = lines.join('\n'); };
-/* Flush after every assertion so a stall mid-run still shows how far we got —
-   otherwise a hang produces an empty page and tells you nothing. */
+/* Flush after every assertion so a stall still shows how far we got. */
 const log = (ok, msg) => { lines.push(`${ok ? 'PASS' : 'FAIL'}  ${msg}`); out(); };
 const mark = (msg) => { lines.push(`---- ${msg}`); out(); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -18,386 +30,60 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 function loadFrame(url) {
   return new Promise((resolve) => {
     const f = document.getElementById('frame');
-    f.onload = () => setTimeout(() => resolve(f.contentWindow, f.contentDocument), 300);
+    f.onload = () => setTimeout(() => resolve(f.contentWindow), 300);
     f.src = url;
   });
 }
 
-/** Does the canvas contain actual drawn pixels? */
-function canvasPainted(canvas) {
-  const ctx = canvas.getContext('2d');
-  const { width: w, height: h } = canvas;
-  if (!w || !h) return false;
-  const d = ctx.getImageData(0, 0, w, h).data;
-  let painted = 0;
-  for (let i = 3; i < d.length; i += 4 * 97) if (d[i] > 0) painted++;
-  return painted > 50;
-}
-
-/** Count distinct strong colours on the wheel face (one per segment). */
-function distinctHues(canvas) {
-  const ctx = canvas.getContext('2d');
-  const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-  const seen = new Set();
-  for (let i = 0; i < d.length; i += 4 * 31) {
-    if (d[i + 3] < 200) continue;
-    seen.add(`${d[i] >> 5},${d[i + 1] >> 5},${d[i + 2] >> 5}`);
-  }
-  return seen.size;
-}
+const RANK = { everyday: 1, seasonal: 2, statement: 3, designer: 4, rare: 5 };
 
 async function run() {
-  /* ---------------- 1. box.html: wheel draws, spin resolves ---------------- */
-  mark('section 1: box.html: wheel draws, spin resolves');
-  let win = await loadFrame('/box.html');
-  let doc = win.document;
+  let win, doc;
 
-  const canvas = doc.querySelector('[data-wheel-canvas]');
-  log(!!canvas, 'box.html: wheel canvas exists');
-  log(canvas && canvas.width > 200, `box.html: canvas sized for DPR (${canvas && canvas.width}px backing store)`);
-  log(canvas && canvasPainted(canvas), 'box.html: wheel actually painted pixels');
-  log(canvas && distinctHues(canvas) >= 5, `box.html: >=5 distinct segment colours drawn (${canvas && distinctHues(canvas)})`);
+  /* ==================================================================
+     1. The reel renders, and its composition IS the published odds
+     ================================================================== */
+  mark('1. reel composition');
+  win = await loadFrame('/box.html?tier=classic');
+  doc = win.document;
+  await sleep(300);
 
   const api = win.SecondSpin;
-  log(!!api, 'box.html: window.SecondSpin exposed');
-  const wheel = api && api.wheels[0];
-  log(wheel && wheel.segments.length === 5, `box.html: classic wheel has 5 segments (${wheel && wheel.segments.length})`);
-
-  /* Geometry honesty: does each arc match its published percentage? */
-  if (wheel) {
-    const bad = wheel.segments.filter(s => {
-      const pctFromArc = (s.arc / (Math.PI * 2)) * 100;
-      return Math.abs(pctFromArc - s.pct) > 0.001;
-    });
-    log(bad.length === 0, `box.html: every arc angle equals its published % (mismatches: ${bad.length})`);
-    const total = wheel.segments.reduce((a, s) => a + s.arc, 0);
-    log(Math.abs(total - Math.PI * 2) < 1e-9, 'box.html: segment arcs fill exactly 360°');
-  }
-
-  /* Spin (reduced motion is forced, so it resolves synchronously) */
-  const spinBtn = doc.querySelector('[data-wheel-spin]');
-  spinBtn.click();
-  await sleep(400);
-  const result = doc.querySelector('[data-wheel-result]');
-  log(result.classList.contains('is-hit'), 'box.html: spin produced a result');
-  log(/chance/.test(result.textContent), 'box.html: result states the % chance of the outcome');
-  const tally = doc.querySelector('[data-wheel-tally]');
-  log(/Yours \/ ours|observed/i.test(tally.textContent), 'box.html: running tally rendered after spin');
-
-  /* ---------------- 2. tier switching rebinds everything ---------------- */
-  mark('section 2: tier switching rebinds everything');
-  doc.querySelector('[data-tier-value="premium"]').click();
-  await sleep(300);
-  const priceEl = doc.querySelector('[data-tier-bind="price"]');
-  log(priceEl.textContent.trim() === '$45', `box.html: switching to Premium updates price ($45) -> got ${priceEl.textContent.trim()}`);
-  log(doc.querySelector('[data-tier-bind="standout"]').textContent.trim() === '100%',
-      'box.html: Premium standout chance shows 100%');
-  log(api.wheels[0].segments.length === 4,
-      `box.html: Premium wheel drops the Everyday segment (${api.wheels[0].segments.length} segments)`);
-  const addBtn = doc.querySelector('[data-product] [data-add-to-cart]');
-  log(addBtn.dataset.addToCart === 'premium', 'box.html: add-to-cart button repointed to premium');
-  log(/Premium/.test(addBtn.textContent), 'box.html: add-to-cart label updated');
-  const slots = doc.querySelectorAll('[data-slot-grid] .slot');
-  log(slots.length === 6, `box.html: slot diagram shows 6 slots for Premium (${slots.length})`);
-  log(doc.querySelectorAll('[data-slot-grid] .slot--feature').length === 2,
-      'box.html: 2 of them are feature slots');
-
-  /* ---------------- 3. odds modal ---------------- */
-  mark('section 3: odds modal');
-  doc.querySelector('[data-odds-modal]').click();
-  await sleep(300);
-  const modal = doc.querySelector('.modal.is-open');
-  log(!!modal, 'box.html: odds modal opens');
-  if (modal) {
-    const cells = Array.from(modal.querySelectorAll('tbody tr td:last-child'))
-      .map(td => parseFloat(td.textContent));
-    const sum = cells.reduce((a, b) => a + b, 0);
-    log(Math.abs(sum - 100) < 0.01, `box.html: modal odds sum to 100% (got ${sum}%)`);
-    log(/never/i.test(modal.textContent), 'box.html: modal discloses outcomes that never appear');
-    modal.querySelector('[data-close]').click();
-    await sleep(200);
-    log(!doc.querySelector('.modal.is-open'), 'box.html: modal closes');
-  }
-
-  /* ---------------- 4. cart ---------------- */
-  mark('section 4: cart');
-  doc.querySelector('[data-product] [data-add-to-cart]').click();
-  await sleep(300);
-  const badge = doc.querySelector('[data-cart-count]');
-  log(badge.textContent === '1', `box.html: cart badge shows 1 (${badge.textContent})`);
-  log(doc.querySelector('[data-cart-drawer]').classList.contains('is-open'), 'box.html: cart drawer opened');
-  log(/\$45/.test(doc.querySelector('[data-cart-total]').textContent), 'box.html: cart total is $45');
-  log(/6\.4 lbs/.test(doc.querySelector('[data-cart-lbs]').textContent),
-      `box.html: cart shows lbs rescued (${doc.querySelector('[data-cart-lbs]').textContent})`);
-  doc.querySelector('[data-qty-up]').click();
-  await sleep(250);
-  log(/\$90/.test(doc.querySelector('[data-cart-total]').textContent),
-      `box.html: qty increment doubles total to $90 (${doc.querySelector('[data-cart-total]').textContent})`);
-
-  /* ---------------- 5. shop.html tier cards ---------------- */
-  mark('section 5: shop.html tier cards');
-  win = await loadFrame('/shop.html');
-  doc = win.document;
-  const bars = doc.querySelectorAll('[data-odds-bar]');
-  log(bars.length === 3, `shop.html: 3 tier odds bars rendered (${bars.length})`);
-  let widthsOk = true;
-  bars.forEach((bar) => {
-    const total = Array.from(bar.children).reduce((a, s) => a + parseFloat(s.style.width), 0);
-    if (Math.abs(total - 100) > 0.01) widthsOk = false;
-  });
-  log(widthsOk, 'shop.html: each odds bar segment widths total exactly 100%');
-  const rings = doc.querySelectorAll('[data-sustain-ring]');
-  const ringVals = Array.from(rings).map(r => r.style.getPropertyValue('--pct').trim());
-  log(ringVals.join(',') === '82,88,94', `shop.html: sustainability rings set to 82,88,94 (${ringVals.join(',')})`);
-
-  /* ---------------- 6. deep link ---------------- */
-  mark('section 6: deep link');
-  win = await loadFrame('/box.html?tier=starter');
-  doc = win.document;
-  await sleep(300);
-  log(doc.querySelector('[data-tier-bind="price"]').textContent.trim() === '$10',
-      `box.html?tier=starter: deep link applies Starter pricing (${doc.querySelector('[data-tier-bind="price"]').textContent.trim()})`);
-  log(win.SecondSpin.wheels[0].tier.id === 'starter', 'box.html?tier=starter: wheel switched to starter');
-
-  /* ---------------- 7. index.html counters + marquee ---------------- */
-  mark('section 7: index.html counters + marquee');
-  win = await loadFrame('/index.html');
-  doc = win.document;
-  await sleep(500);
-  const lbs = doc.querySelector('[data-live-lbs]').textContent.replace(/,/g, '');
-  log(Number(lbs) >= 12450, `index.html: impact counter reached 12,450 (${lbs})`);
-  log(doc.querySelectorAll('.marquee__item').length === 16,
-      `index.html: marquee duplicated for seamless loop (${doc.querySelectorAll('.marquee__item').length} items)`);
-  log(doc.querySelectorAll('.reveal.is-in').length > 0,
-      `index.html: scroll-reveal elements activated (${doc.querySelectorAll('.reveal.is-in').length})`);
-
-  /* ---------------- 8. newsletter validation ---------------- */
-  mark('section 8: newsletter validation');
-  const form = doc.querySelector('[data-newsletter]');
-  const email = form.querySelector('input[type="email"]');
-  email.value = 'nope';
-  form.dispatchEvent(new win.Event('submit', { cancelable: true, bubbles: true }));
-  await sleep(150);
-  log(form.querySelector('[data-form-msg]').dataset.state === 'err', 'index.html: invalid email rejected');
-  email.value = 'a@b.co';
-  form.dispatchEvent(new win.Event('submit', { cancelable: true, bubbles: true }));
-  await sleep(150);
-  log(form.querySelector('[data-form-msg]').dataset.state === 'ok', 'index.html: valid email accepted');
-
-  /* ---------------- 9. Trade Up ---------------- */
-  mark('section 9: Trade Up');
-  win = await loadFrame('/box.html?tier=classic');
-  doc = win.document;
-  await sleep(300);
-  const w2 = win.SecondSpin.wheels[0];
-
-  /* Force a known low outcome so the offer is guaranteed to appear. */
-  const everyday = w2.segments.find(s => s.id === 'everyday');
-  w2.recordResult(everyday);
-  await sleep(150);
-
-  const offer = doc.querySelector('[data-offer]');
-  log(!!offer, 'tradeup: offer appears after an Everyday Staple result');
-  log(offer && /\$2\.20/.test(offer.textContent), 'tradeup: fee shown as $2.20 (10% of $22)');
-  log(offer && /Guaranteed upgrade/i.test(offer.textContent), 'tradeup: states the guaranteed-upgrade floor');
-  log(offer && /worst case is Seasonal Pick/i.test(offer.textContent), 'tradeup: names the floor outcome correctly');
-  log(offer && !/Vintage Rare \d/.test(offer.textContent), 'tradeup: Vintage Rare absent from the offered pool');
-  if (offer) {
-    const segs = Array.from(offer.querySelectorAll('.odds-bar__seg'));
-    const total = segs.reduce((a, s) => a + parseFloat(s.style.width), 0);
-    log(Math.abs(total - 100) < 0.05, `tradeup: offered pool widths total 100% (${total.toFixed(1)}%)`);
-    log(!segs.some(s => s.dataset.rarity === 'rare'), 'tradeup: no rare segment in the offered bar');
-  }
-
-  /* Declining leaves the result intact */
-  doc.querySelector('[data-keep-it]').click();
-  await sleep(150);
-  log(!doc.querySelector('[data-offer]'), 'tradeup: "Keep it" dismisses the offer');
-
-  /* Take the trade and verify it can only improve */
-  w2.recordResult(everyday);
-  await sleep(150);
-  doc.querySelector('[data-trade-up]').click();
-  await sleep(500);
-  log(w2.tradeUps === 1, `tradeup: counter incremented (${w2.tradeUps})`);
-  log(Math.abs(w2.extraSpend - 2.2) < 0.001, `tradeup: ledger charged $2.20 (${w2.extraSpend})`);
-  const rank = win.SecondSpin.RARITY_RANK || { everyday:1, seasonal:2, statement:3, designer:4, rare:5 };
-  log(rank[w2.lastResult.id] > rank.everyday,
-      `tradeup: result is a STRICT upgrade on Everyday (got ${w2.lastResult.label})`);
-  log(w2.lastResult.id !== 'rare', 'tradeup: result is never Vintage Rare');
-  log(/Trade Up ledger/.test(doc.querySelector('[data-wheel-result]').textContent),
-      'tradeup: running spend ledger is displayed');
-
-  /* Cap enforcement */
-  const seasonalNow = w2.segments.find(s => s.id === 'seasonal');
-  if (seasonalNow) {
-    w2.recordResult(seasonalNow);
-    await sleep(150);
-    const capped = doc.querySelector('[data-offer]');
-    log(capped && /capped|already used/i.test(capped.textContent),
-        'tradeup: second trade on same slot is refused by the cap');
-    log(!doc.querySelector('[data-trade-up]'), 'tradeup: no second trade-up button offered');
-  }
-
-  /* Spinning again must return to base odds, not keep the upgraded pool */
-  doc.querySelector('[data-wheel-spin]').click();
-  await sleep(500);
-  log(w2.poolFrom === null, 'tradeup: main Spin resets to base odds');
-  log(w2.segments.length === 5, `tradeup: base wheel restored to 5 segments (${w2.segments.length})`);
-  log(w2.tradeUps === 0 && w2.extraSpend === 0, 'tradeup: ledger cleared on fresh slot');
-
-  /* Every trade-up arc must still equal its published percentage */
-  w2.recordResult(w2.segments.find(s => s.id === 'everyday'));
-  await sleep(100);
-  doc.querySelector('[data-trade-up]').click();
-  await sleep(500);
-  const geomBad = w2.segments.filter(s => Math.abs((s.arc / (Math.PI * 2)) * 100 - s.pct) > 0.001);
-  log(geomBad.length === 0, `tradeup: arc angles still equal published % in trade pool (${geomBad.length} bad)`);
-  const arcSum = w2.segments.reduce((a, s) => a + s.arc, 0);
-  log(Math.abs(arcSum - Math.PI * 2) < 1e-9, 'tradeup: trade pool arcs fill exactly 360°');
-
-  /* Premium: Everyday is impossible, so no trade-up path from it */
-  win = await loadFrame('/box.html?tier=premium');
-  doc = win.document;
-  await sleep(300);
-  const w3 = win.SecondSpin.wheels[0];
-  log(!w3.segments.some(s => s.id === 'everyday'), 'tradeup/premium: no Everyday segment exists to trade from');
-  const premSeasonal = w3.segments.find(s => s.id === 'seasonal');
-  w3.recordResult(premSeasonal);
-  await sleep(150);
-  const premOffer = doc.querySelector('[data-offer]');
-  log(premOffer && /\$4\.50/.test(premOffer.textContent), 'tradeup/premium: fee shown as $4.50 (10% of $45)');
-
-  /* ---------------- 10. Item lookbook ---------------- */
-  mark('section 10: Item lookbook');
-  win = await loadFrame('/lookbook.html');
-  doc = win.document;
-  await sleep(400);
-
-  const tiles = doc.querySelectorAll('.item-tile');
-  log(tiles.length === 200, `lookbook: all 200 items rendered (${tiles.length})`);
-  log(win.ITEM_CATALOG && win.ITEM_CATALOG.length === 200,
-      `lookbook: catalogue has 200 entries (${win.ITEM_CATALOG && win.ITEM_CATALOG.length})`);
-
-  const ids = new Set(win.ITEM_CATALOG.map(i => i.id));
-  log(ids.size === 200, `lookbook: all item ids unique (${ids.size})`);
-  const names = new Set(win.ITEM_CATALOG.map(i => i.name));
-  log(names.size === 200, `lookbook: all item names unique (${names.size})`);
-
-  /* Every item must carry one of the five real rarity tags from the odds data */
-  const validTags = ['rare', 'designer', 'statement', 'seasonal', 'everyday'];
-  const badTag = win.ITEM_CATALOG.filter(i => !validTags.includes(i.rarity));
-  log(badTag.length === 0, `lookbook: every item tagged with a real rarity (${badTag.length} bad)`);
-  const usedTags = new Set(win.ITEM_CATALOG.map(i => i.rarity));
-  log(usedTags.size === 5, `lookbook: all five tags represented (${usedTags.size})`);
-
-  /* Breadth must match what the page advertises on its filter buttons */
-  const b = win.catalogBreadth();
-  log(b.rare === 20 && b.designer === 30 && b.statement === 45 && b.seasonal === 45 && b.everyday === 60,
-      `lookbook: breadth 20/30/45/45/60 (${b.rare}/${b.designer}/${b.statement}/${b.seasonal}/${b.everyday})`);
-
-  /* Sprites must actually load, not 404 */
-  await sleep(600);
-  const imgs = Array.from(doc.querySelectorAll('.item-tile__img'));
-  const eager = imgs.slice(0, 24);
-  const broken = eager.filter(im => im.complete && im.naturalWidth === 0);
-  log(broken.length === 0, `lookbook: sprite files load (${broken.length} broken of ${eager.length} checked)`);
-  log(eager.every(im => im.naturalWidth === 128 || im.naturalWidth === 0),
-      `lookbook: sprites are 128px (32px grid at 4x) — got ${eager[0] && eager[0].naturalWidth}`);
-
-  /* Frame must not collapse — this regressed once via the figure margin bug */
-  const frame = doc.querySelector('.item-tile__frame');
-  log(frame && frame.getBoundingClientRect().width > 100,
-      `lookbook: sprite frame is full tile width, not collapsed (${frame && Math.round(frame.getBoundingClientRect().width)}px)`);
-  const tileW = doc.querySelector('.item-tile').getBoundingClientRect().width;
-  log(tileW > 140, `lookbook: tiles are not squeezed by default figure margins (${Math.round(tileW)}px)`);
-
-  /* Rarity filter */
-  doc.querySelector('[data-filter-rarity] [data-rarity="rare"]').click();
-  await sleep(250);
-  log(doc.querySelectorAll('.item-tile').length === 20,
-      `lookbook: rarity filter narrows to 20 Vintage Rare (${doc.querySelectorAll('.item-tile').length})`);
-  const onlyRare = Array.from(doc.querySelectorAll('.item-tile__frame'))
-    .every(f => f.dataset.rarity === 'rare');
-  log(onlyRare, 'lookbook: filtered grid contains only that tag');
-
-  /* Category filter composes with rarity filter */
-  const catBtn = doc.querySelector('[data-filter-category] [data-category="outerwear"]');
-  if (catBtn) {
-    catBtn.click();
-    await sleep(250);
-    const n = doc.querySelectorAll('.item-tile').length;
-    log(n > 0 && n < 20, `lookbook: category filter composes with rarity (${n} items)`);
-  }
-
-  /* Reset */
-  doc.querySelector('[data-filter-rarity] [data-rarity="all"]').click();
-  doc.querySelector('[data-filter-category] [data-category="all"]').click();
-  await sleep(250);
-  log(doc.querySelectorAll('.item-tile').length === 200, 'lookbook: filters reset to all 200');
-
-  /* The page must not imply breadth == odds */
-  const pageText = doc.body.textContent;
-  log(/not your chances|breadth, not/i.test(pageText),
-      'lookbook: explicitly distinguishes catalogue breadth from draw odds');
-
-  /* ---------------- 11. Wheel shows a real catalogue item ---------------- */
-  mark('section 11: Wheel shows a real catalogue item');
-  win = await loadFrame('/box.html?tier=classic');
-  doc = win.document;
-  await sleep(300);
-  const w4 = win.SecondSpin.wheels[0];
-  w4.recordResult(w4.segments.find(s => s.id === 'rare'));
-  await sleep(200);
-  const thumb = doc.querySelector('.item-thumb');
-  log(!!thumb, 'wheel: result panel shows a sample catalogue garment');
-  if (thumb) {
-    const img = thumb.querySelector('img');
-    log(!!img && /assets\/items\/itm-\d{3}\.png/.test(img.getAttribute('src')),
-        `wheel: sample image points at a real sprite (${img && img.getAttribute('src')})`);
-    log(/20 Vintage Rare pieces/.test(thumb.textContent),
-        'wheel: links to the 20 Vintage Rare items in the lookbook');
-    const link = thumb.querySelector('a');
-    log(link && link.getAttribute('href') === 'lookbook.html?tag=rare',
-        'wheel: sample links through to the filtered lookbook');
-  }
-
-  /* ---------------- 12. Card Vault + reveal reel ---------------- */
-  mark('section 12: Card Vault + reveal reel');
-  win = await loadFrame('/cards.html');
-  doc = win.document;
-  await sleep(500);
-
-  const reel = win.SecondSpinReels && win.SecondSpinReels[0];
-  log(!!reel, 'reel: instantiated on cards.html');
+  log(!!api, 'window.SecondSpin exposed');
+  const reel = api && api.reels[0];
+  log(!!reel, 'reel instantiated on box.html');
 
   const cells = () => Array.from(doc.querySelectorAll('.reel__cell'));
-  log(cells().length === 64, `reel: strip has 64 cells (${cells().length})`);
+  log(cells().length === 64, `strip has 64 cells (${cells().length})`);
+  log(doc.querySelectorAll('.reel__img').length > 0, 'cells show real catalogue garment sprites');
 
-  const reelTally = () => cells().reduce((a, c) => {
+  const tallyCells = () => cells().reduce((a, c) => {
     a[c.dataset.rarity] = (a[c.dataset.rarity] || 0) + 1; return a;
   }, {});
-  const before = reelTally();
-  log(Object.values(before).reduce((a, b) => a + b, 0) === 64, 'reel: cell counts total 64');
+  const before = tallyCells();
+  log(Object.values(before).reduce((a, b) => a + b, 0) === 64, 'cell counts total 64');
 
-  /* THE honesty invariant: strip composition must match published odds. */
-  const collector = win.CARD_TIER_BY_ID.collector;
+  /* THE load-bearing honesty invariant. */
+  const classic = win.TIER_BY_ID ? win.TIER_BY_ID.classic : api.TIERS.find(t => t.id === 'classic');
   let proportional = true;
   const detail = [];
   Object.keys(before).forEach((k) => {
-    const exact = (collector.odds[k] / 100) * 64;
+    const exact = (classic.odds[k] / 100) * 64;
     detail.push(`${k} ${before[k]}/${exact.toFixed(1)}`);
     if (Math.abs(before[k] - exact) > 1) proportional = false;
   });
-  log(proportional, `reel: every cell count within 1 of its exact proportion (${detail.join(', ')})`);
-  log(doc.querySelectorAll('.reel__img').length > 0, 'reel: cells show real catalogue card sprites');
+  log(proportional, `every cell count within 1 of its exact published proportion (${detail.join(', ')})`);
+  log(reel.counts.rare === 4, `6% Vintage Rare renders as 4 of 64 cells (${reel.counts.rare})`);
 
-  /* Spin — reduced motion is forced, so this resolves immediately */
-  doc.querySelector('[data-reel-spin]').click();
-  await sleep(600);
+  /* ==================================================================
+     2. Opening resolves a result
+     ================================================================== */
+  mark('2. opening');
+  doc.querySelector('[data-reel-open]').click();
+  await sleep(700);
 
   const won = doc.querySelector('.reel__cell.is-won');
-  log(!!won, 'reel: a winning cell is marked after opening');
+  log(!!won, 'a winning cell is marked after opening');
 
   /* NO FAKE NEAR-MISS: winning cell centre must sit on the marker centre. */
   if (won) {
@@ -405,59 +91,261 @@ async function run() {
     const wr = won.getBoundingClientRect();
     const drift = Math.abs((wr.left + wr.width / 2) - (vp.left + vp.width / 2));
     log(drift < 1.5,
-        `reel: winning cell lands DEAD CENTRE on the marker, drift ${drift.toFixed(2)}px — no manufactured near-miss`);
+        `winning cell lands DEAD CENTRE on the marker, drift ${drift.toFixed(2)}px — no manufactured near-miss`);
   }
 
-  const reelResult = doc.querySelector('[data-reel-result]');
-  log(/dead centre/i.test(reelResult.textContent), 'reel: result discloses the dead-centre landing');
-  log(/chance/.test(reelResult.textContent), 'reel: result states the % chance of the outcome');
+  const result = doc.querySelector('[data-reel-result]');
+  log(result.classList.contains('is-hit'), 'result panel populated');
+  log(/chance/.test(result.textContent), 'result states the % chance of the outcome');
+  log(/dead centre/i.test(result.textContent), 'result discloses the dead-centre landing');
+  log(/assets\/items\/itm-\d{3}\.png/.test(result.innerHTML), 'result shows a real catalogue garment sprite');
+  log(/lookbook\.html\?tag=/.test(result.innerHTML), 'result links through to the filtered lookbook');
+  log(/Yours \/ ours/.test(doc.querySelector('[data-reel-tally]').textContent),
+      'running tally rendered after opening');
 
-  /* Composition must survive a spin — winner is swapped in, never inserted */
-  const after = reelTally();
-  const sameComposition = Object.keys(before).length === Object.keys(after).length &&
-    Object.keys(before).every(k => before[k] === after[k]);
-  log(sameComposition, 'reel: composition preserved after spin (winner swapped, not injected)');
+  /* Composition must survive — the winner is swapped in, never injected */
+  const after = tallyCells();
+  const same = Object.keys(before).length === Object.keys(after).length &&
+               Object.keys(before).every(k => before[k] === after[k]);
+  log(same, 'composition preserved after opening (winner swapped, not injected)');
 
-  /* Vault has 0% Common, so no Common cell may exist on its strip */
-  doc.querySelector('[data-card-tier-value="vault"]').click();
+  log(/64 cells, apportioned/.test(doc.querySelector('[data-reel-composition]').textContent),
+      'strip prints its own composition so it can be counted');
+
+  /* ==================================================================
+     3. Tier switching rebinds everything, including the reel
+     ================================================================== */
+  mark('3. tier switching');
+  doc.querySelector('[data-tier-value="premium"]').click();
   await sleep(400);
-  log(!cells().some(c => c.dataset.rarity === 'common'),
-      'reel: Vault strip contains zero Common cells, matching its published 0%');
-  log(doc.querySelector('[data-card-bind="name"]').textContent.trim() === 'Vault Box',
-      'reel: tier switch rebinds the card box name');
+  log(doc.querySelector('[data-tier-bind="price"]').textContent.trim() === '$45',
+      `switching to Premium updates price ($45) -> ${doc.querySelector('[data-tier-bind="price"]').textContent.trim()}`);
+  log(doc.querySelector('[data-tier-bind="standout"]').textContent.trim() === '100%',
+      'Premium standout chance shows 100%');
+  log(!cells().some(c => c.dataset.rarity === 'everyday'),
+      'Premium strip contains zero Everyday cells, matching its published 0%');
+  const addBtn = doc.querySelector('[data-product] [data-add-to-cart]');
+  log(addBtn.dataset.addToCart === 'premium', 'add-to-cart repointed to premium');
+  log(/Premium/.test(addBtn.textContent), 'add-to-cart label updated');
+  log(doc.querySelectorAll('[data-slot-grid] .slot').length === 6, 'slot diagram shows 6 slots');
+  log(doc.querySelectorAll('[data-slot-grid] .slot--feature').length === 2, '2 of them are feature slots');
 
-  /* Card odds tables must sum to 100, same guard rail as clothing */
-  let cardSums = true;
-  win.CARD_TIERS.forEach((t) => {
-    const s = Object.values(t.odds).reduce((a, b) => a + b, 0);
-    if (s !== 100) cardSums = false;
-  });
-  log(cardSums, 'cards: every card tier odds table sums to 100%');
+  /* ==================================================================
+     4. Odds modal
+     ================================================================== */
+  mark('4. odds modal');
+  doc.querySelector('[data-odds-modal]').click();
+  await sleep(300);
+  const modal = doc.querySelector('.modal.is-open');
+  log(!!modal, 'odds modal opens');
+  if (modal) {
+    const pcts = Array.from(modal.querySelectorAll('tbody tr td:last-child'))
+      .map(td => parseFloat(td.textContent));
+    const sum = pcts.reduce((a, b) => a + b, 0);
+    log(Math.abs(sum - 100) < 0.01, `modal odds sum to 100% (${sum}%)`);
+    log(/never/i.test(modal.textContent), 'modal discloses outcomes that never appear');
+    log(/64 cells/.test(modal.textContent), 'modal explains the strip apportionment');
+    modal.querySelector('[data-close]').click();
+    await sleep(200);
+    log(!doc.querySelector('.modal.is-open'), 'modal closes');
+  }
 
-  /* Card art must be original — assets live under assets/cards/ */
-  log(win.CARD_CATALOG.length === 60, `cards: 60 card designs in catalogue (${win.CARD_CATALOG.length})`);
-  log(win.CARD_CATALOG.every(c => c.file.startsWith('assets/cards/card-')),
-      'cards: all card art served from our own assets/cards/');
+  /* ==================================================================
+     5. Cart
+     ================================================================== */
+  mark('5. cart');
+  doc.querySelector('[data-product] [data-add-to-cart]').click();
+  await sleep(300);
+  log(doc.querySelector('[data-cart-count]').textContent === '1', 'cart badge shows 1');
+  log(doc.querySelector('[data-cart-drawer]').classList.contains('is-open'), 'cart drawer opened');
+  log(/\$45/.test(doc.querySelector('[data-cart-total]').textContent), 'cart total is $45');
+  log(/6\.4 lbs/.test(doc.querySelector('[data-cart-lbs]').textContent), 'cart shows lbs rescued');
+  doc.querySelector('[data-qty-up]').click();
+  await sleep(250);
+  log(/\$90/.test(doc.querySelector('[data-cart-total]').textContent), 'qty increment doubles total to $90');
 
-  /* ---------------- 13. Reveal-mode toggle on the clothing page ---------------- */
+  /* ==================================================================
+     6. Trade Up
+     ================================================================== */
+  mark('6. trade up');
   win = await loadFrame('/box.html?tier=classic');
   doc = win.document;
+  await sleep(300);
+  const r2 = win.SecondSpin.reels[0];
+
+  /* Force a known low outcome so the offer is guaranteed to appear. */
+  const everyday = r2.pool.find(r => r.id === 'everyday');
+  r2.recordResult(everyday, null);
+  await sleep(150);
+
+  const offer = doc.querySelector('[data-offer]');
+  log(!!offer, 'offer appears after an Everyday Staple result');
+  log(offer && /\$2\.20/.test(offer.textContent), 'fee shown as $2.20 (10% of $22)');
+  log(offer && /Guaranteed upgrade/i.test(offer.textContent), 'states the guaranteed-upgrade floor');
+  log(offer && /worst case is Seasonal Pick/i.test(offer.textContent), 'names the floor outcome correctly');
+  if (offer) {
+    const segs = Array.from(offer.querySelectorAll('.odds-bar__seg'));
+    const total = segs.reduce((a, s) => a + parseFloat(s.style.width), 0);
+    log(Math.abs(total - 100) < 0.05, `offered pool widths total 100% (${total.toFixed(1)}%)`);
+    log(!segs.some(s => s.dataset.rarity === 'rare'), 'Vintage Rare absent from the offered pool');
+  }
+
+  doc.querySelector('[data-keep-it]').click();
+  await sleep(150);
+  log(!doc.querySelector('[data-offer]'), '"Keep it" dismisses the offer');
+
+  r2.recordResult(everyday, null);
+  await sleep(150);
+  doc.querySelector('[data-trade-up]').click();
+  await sleep(700);
+  log(r2.tradeUps === 1, `trade counter incremented (${r2.tradeUps})`);
+  log(Math.abs(r2.extraSpend - 2.2) < 0.001, `ledger charged $2.20 (${r2.extraSpend})`);
+  log(RANK[r2.lastResult.id] > RANK.everyday,
+      `result is a STRICT upgrade on Everyday (got ${r2.lastResult.label})`);
+  log(r2.lastResult.id !== 'rare', 'result is never Vintage Rare');
+  log(/Trade Up ledger/.test(doc.querySelector('[data-reel-result]').textContent),
+      'running spend ledger is displayed');
+  log(!cells().some(c => c.dataset.rarity === 'everyday'),
+      'trade-up strip drops Everyday cells entirely');
+
+  const seasonalNow = r2.pool.find(r => r.id === 'seasonal');
+  if (seasonalNow) {
+    r2.recordResult(seasonalNow, null);
+    await sleep(150);
+    const capped = doc.querySelector('[data-offer]');
+    log(capped && /capped|already used/i.test(capped.textContent),
+        'second trade on the same slot is refused by the cap');
+    log(!doc.querySelector('[data-trade-up]'), 'no second trade-up button offered');
+  }
+
+  doc.querySelector('[data-reel-open]').click();
+  await sleep(700);
+  log(r2.poolFrom === null, 'opening again resets to base odds');
+  log(r2.pool.length === 5, `base strip restored to 5 outcomes (${r2.pool.length})`);
+  log(r2.tradeUps === 0 && r2.extraSpend === 0, 'ledger cleared on a fresh slot');
+
+  /* ==================================================================
+     7. Deep link
+     ================================================================== */
+  mark('7. deep link');
+  win = await loadFrame('/box.html?tier=starter');
+  doc = win.document;
+  await sleep(300);
+  log(doc.querySelector('[data-tier-bind="price"]').textContent.trim() === '$10',
+      '?tier=starter applies Starter pricing');
+  log(win.SecondSpin.reels[0].tier.id === 'starter', '?tier=starter switches the reel');
+  log(win.SecondSpin.reels[0].counts.rare === 1,
+      `Starter's 2% Vintage Rare renders as 1 of 64 cells (${win.SecondSpin.reels[0].counts.rare})`);
+
+  /* ==================================================================
+     8. Shop page
+     ================================================================== */
+  mark('8. shop page');
+  win = await loadFrame('/shop.html');
+  doc = win.document;
   await sleep(400);
-  const wheelPanel = doc.querySelector('[data-reveal-panel="wheel"]');
-  const reelPanel = doc.querySelector('[data-reveal-panel="reel"]');
-  log(!!wheelPanel && !!reelPanel, 'reveal: both wheel and reel panels exist on box.html');
-  log(reelPanel.hidden === true, 'reveal: reel panel hidden by default (wheel is the default)');
-  doc.querySelector('[data-reveal-mode="reel"]').click();
+  const bars = doc.querySelectorAll('[data-odds-bar]');
+  log(bars.length === 3, `3 tier odds bars rendered (${bars.length})`);
+  let widthsOk = true;
+  bars.forEach((bar) => {
+    const total = Array.from(bar.children).reduce((a, s) => a + parseFloat(s.style.width), 0);
+    if (Math.abs(total - 100) > 0.01) widthsOk = false;
+  });
+  log(widthsOk, 'each odds bar segment widths total exactly 100%');
+  const rings = Array.from(doc.querySelectorAll('[data-sustain-ring]'))
+    .map(r => r.style.getPropertyValue('--pct').trim());
+  log(rings.join(',') === '82,88,94', `sustainability rings set to 82,88,94 (${rings.join(',')})`);
+  log(!!doc.querySelector('.reel__cell'), 'shop page carries a working reel preview');
+  doc.querySelector('[data-tier-value="premium"]').click();
   await sleep(400);
-  log(reelPanel.hidden === false && wheelPanel.hidden === true, 'reveal: toggling shows the reel, hides the wheel');
-  const clothingReel = win.SecondSpinReels && win.SecondSpinReels[0];
-  log(clothingReel && clothingReel.src.kind === 'clothing', 'reveal: box.html reel is bound to the clothing ladder');
-  log(doc.querySelectorAll('[data-reveal-panel="reel"] .reel__cell').length === 64,
-      'reveal: clothing reel strip also built with 64 cells');
-  doc.querySelector('[data-reel-spin]').click();
-  await sleep(600);
-  log(!!doc.querySelector('[data-reveal-panel="reel"] .reel__cell.is-won'),
-      'reveal: clothing reel resolves a result too');
+  log(!Array.from(doc.querySelectorAll('.reel__cell')).some(c => c.dataset.rarity === 'everyday'),
+      'shop reel follows the tier switcher');
+
+  /* ==================================================================
+     9. Homepage
+     ================================================================== */
+  mark('9. homepage');
+  win = await loadFrame('/index.html');
+  doc = win.document;
+  await sleep(500);
+  const lbs = doc.querySelector('[data-live-lbs]').textContent.replace(/,/g, '');
+  log(Number(lbs) >= 12450, `impact counter reached 12,450 (${lbs})`);
+  log(doc.querySelectorAll('.marquee__item').length === 16,
+      `marquee duplicated for seamless loop (${doc.querySelectorAll('.marquee__item').length})`);
+  log(doc.querySelectorAll('.reveal.is-in').length > 0,
+      `scroll-reveal elements activated (${doc.querySelectorAll('.reveal.is-in').length})`);
+  log(!!doc.querySelector('#try-the-reveal .reel__cell'), 'homepage carries a working reel');
+
+  const form = doc.querySelector('[data-newsletter]');
+  const email = form.querySelector('input[type="email"]');
+  email.value = 'nope';
+  form.dispatchEvent(new win.Event('submit', { cancelable: true, bubbles: true }));
+  await sleep(150);
+  log(form.querySelector('[data-form-msg]').dataset.state === 'err', 'invalid email rejected');
+  email.value = 'a@b.co';
+  form.dispatchEvent(new win.Event('submit', { cancelable: true, bubbles: true }));
+  await sleep(150);
+  log(form.querySelector('[data-form-msg]').dataset.state === 'ok', 'valid email accepted');
+
+  /* ==================================================================
+     10. Item lookbook
+     ================================================================== */
+  mark('10. lookbook');
+  win = await loadFrame('/lookbook.html');
+  doc = win.document;
+  await sleep(500);
+  log(doc.querySelectorAll('.item-tile').length === 200,
+      `all 200 items rendered (${doc.querySelectorAll('.item-tile').length})`);
+  log(win.ITEM_CATALOG.length === 200, `catalogue has 200 entries (${win.ITEM_CATALOG.length})`);
+  log(new Set(win.ITEM_CATALOG.map(i => i.id)).size === 200, 'all item ids unique');
+  log(new Set(win.ITEM_CATALOG.map(i => i.name)).size === 200, 'all item names unique');
+  const validTags = ['rare', 'designer', 'statement', 'seasonal', 'everyday'];
+  log(win.ITEM_CATALOG.every(i => validTags.includes(i.rarity)), 'every item tagged with a real rarity');
+  const b = win.catalogBreadth();
+  log(b.rare === 20 && b.designer === 30 && b.statement === 45 && b.seasonal === 45 && b.everyday === 60,
+      `breadth 20/30/45/45/60 (${b.rare}/${b.designer}/${b.statement}/${b.seasonal}/${b.everyday})`);
+
+  await sleep(500);
+  const imgs = Array.from(doc.querySelectorAll('.item-tile__img')).slice(0, 24);
+  log(imgs.filter(im => im.complete && im.naturalWidth === 0).length === 0, 'sprite files load');
+  const frame = doc.querySelector('.item-tile__frame');
+  log(frame && frame.getBoundingClientRect().width > 100,
+      `sprite frame is full tile width, not collapsed (${frame && Math.round(frame.getBoundingClientRect().width)}px)`);
+  log(doc.querySelector('.item-tile').getBoundingClientRect().width > 140,
+      'tiles not squeezed by default figure margins');
+
+  doc.querySelector('[data-filter-rarity] [data-rarity="rare"]').click();
+  await sleep(250);
+  log(doc.querySelectorAll('.item-tile').length === 20, 'rarity filter narrows to 20 Vintage Rare');
+  log(Array.from(doc.querySelectorAll('.item-tile__frame')).every(f => f.dataset.rarity === 'rare'),
+      'filtered grid contains only that tag');
+  const catBtn = doc.querySelector('[data-filter-category] [data-category="outerwear"]');
+  if (catBtn) {
+    catBtn.click();
+    await sleep(250);
+    const n = doc.querySelectorAll('.item-tile').length;
+    log(n > 0 && n < 20, `category filter composes with rarity (${n} items)`);
+  }
+  doc.querySelector('[data-filter-rarity] [data-rarity="all"]').click();
+  doc.querySelector('[data-filter-category] [data-category="all"]').click();
+  await sleep(250);
+  log(doc.querySelectorAll('.item-tile').length === 200, 'filters reset to all 200');
+  log(/not your chances|breadth, not/i.test(doc.body.textContent),
+      'explicitly distinguishes catalogue breadth from draw odds');
+
+  /* ==================================================================
+     11. No trace of the retired wheel or card line
+     ================================================================== */
+  mark('11. removals');
+  for (const page of ['/index.html', '/shop.html', '/box.html', '/faq.html', '/about.html', '/lookbook.html']) {
+    win = await loadFrame(page);
+    doc = win.document;
+    await sleep(200);
+    const html = doc.documentElement.innerHTML;
+    const stale = ['data-wheel-', 'wheel.js', 'cards.html', 'card-catalog', 'reveal-toggle']
+      .filter(n => html.includes(n));
+    log(stale.length === 0, `${page} free of retired wheel/card markup${stale.length ? ' — found ' + stale.join(', ') : ''}`);
+  }
 
   const failed = lines.filter(l => l.startsWith('FAIL')).length;
   lines.push('');

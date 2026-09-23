@@ -1,65 +1,40 @@
 /* ==========================================================================
    Second Spin — the reveal reel
    --------------------------------------------------------------------------
-   A horizontal case-opening animation: a long strip of items scrolls past a
-   centre marker, decelerates, and stops on your result.
+   The single reveal mechanic for the whole site: a horizontal strip of real
+   catalogue garments scrolls past a centre marker, decelerates, and stops on
+   your result.
 
    This pattern is borrowed from game case-openers, and those are built to
    manipulate. This one is built not to. Four rules:
 
-   1. THE STRIP IS THE ODDS TABLE. Cell counts are computed from the published
-      percentages by largest-remainder, so a 6% outcome occupies exactly 4 of
-      64 cells. Count them if you like — the UI tells you the composition.
-      Nothing is salted with extra rares to make the strip feel richer.
+   1. THE STRIP IS THE ODDS TABLE. Cell counts are apportioned from the
+      published percentages by largest-remainder, so a 6% outcome occupies
+      exactly 4 of 64 cells. Count them if you like — the UI prints the
+      composition. The strip is never salted with extra rares to feel richer.
 
-   2. NO NEAR-MISS. This is the big one. Case-openers habitually decelerate so
-      the marker drifts to the very edge of your cell, with a jackpot cell
-      sitting just beyond — manufacturing an "so close!" feeling that has no
-      basis in the draw. We land DEAD CENTRE on the winning cell, every single
-      time, and we say so on screen.
+   2. NO NEAR-MISS. Case-openers habitually decelerate so the marker drifts to
+      the very edge of your cell, with a jackpot cell sitting just beyond,
+      manufacturing an "so close!" feeling with no basis in the draw. We land
+      DEAD CENTRE on the winning cell, every time, and say so on screen.
 
    3. DRAW FIRST, ANIMATE SECOND. The outcome is resolved before the animation
-      starts. Nothing about the scroll can change it. Neighbours of the winning
-      cell are whatever the distribution happened to put there — they are not
-      arranged for tension.
+      starts. Nothing about the scroll can change it, and the winner is placed
+      by SWAPPING cells, so the published composition is preserved exactly
+      rather than injected into.
 
-   4. FREE AND STAKELESS. Spinning buys nothing and reserves nothing.
-
-   Drives either product line via a source descriptor, so the clothing and
-   card verticals share one implementation.
+   4. FREE AND STAKELESS. Opening this buys nothing and reserves nothing.
    ========================================================================== */
 
 const REEL_CELLS = 64;        // strip length
-const REEL_WIN_INDEX = 54;    // where the winning cell sits
+const REEL_WIN_INDEX = 54;    // where the winning cell comes to rest
 const REEL_DURATION = 5200;   // ms
 
-/** Resolve a product line into the data the reel needs. */
-function reelSource(kind) {
-  if (kind === 'cards' && typeof CARD_TIERS !== 'undefined') {
-    return {
-      kind,
-      tiers: CARD_TIER_BY_ID,
-      defaultTier: DEFAULT_CARD_TIER,
-      rarities: CARD_RARITIES,
-      order: CARD_RARITY_ORDER,
-      catalog: typeof CARD_CATALOG !== 'undefined' ? CARD_CATALOG : [],
-      noun: 'card',
-      lookbook: null,
-    };
-  }
-  return {
-    kind: 'clothing',
-    tiers: TIER_BY_ID,
-    defaultTier: DEFAULT_TIER,
-    rarities: RARITIES,
-    order: RARITY_ORDER,
-    catalog: typeof ITEM_CATALOG !== 'undefined' ? ITEM_CATALOG : [],
-    noun: 'piece',
-    lookbook: 'lookbook.html',
-  };
-}
-
-/** Largest-remainder apportionment of `total` cells across the odds table. */
+/**
+ * Largest-remainder apportionment of `total` cells across an odds table, so
+ * the strip's composition matches the published percentages as closely as a
+ * whole number of cells allows.
+ */
 function apportionCells(odds, order, total) {
   const ids = order.filter((id) => (odds[id] || 0) > 0);
   const exact = ids.map((id) => (odds[id] / 100) * total);
@@ -82,66 +57,119 @@ class Reel {
     this.viewport = scope.querySelector('[data-reel-viewport]');
     this.track = scope.querySelector('[data-reel-track]');
     this.marker = scope.querySelector('[data-reel-marker]');
-    this.btn = scope.querySelector('[data-reel-spin]');
+    this.btn = scope.querySelector('[data-reel-open]');
     this.resultEl = scope.querySelector('[data-reel-result]');
     this.compEl = scope.querySelector('[data-reel-composition]');
+    this.tallyEl = scope.querySelector('[data-reel-tally]');
+    this.confettiEl = scope.querySelector('[data-confetti]');
     if (!this.track || !this.viewport) return;
 
-    this.src = reelSource(scope.dataset.reelKind);
-    this.spinning = false;
+    this.running = false;
     this.offset = 0;
     this.lastCell = -1;
+    this.opens = 0;
+    this.tally = {};
 
-    this.setTier(scope.dataset.reelTier || this.src.defaultTier);
+    /* Trade Up state */
+    this.tradeUps = 0;
+    this.extraSpend = 0;
+    this.tradedAway = [];
+    this.poolFrom = null;     // null = base tier odds; else the traded-from id
 
-    if (this.btn) this.btn.addEventListener('click', () => this.spin());
+    this.setTier(scope.dataset.reelTier || DEFAULT_TIER);
+
+    if (this.btn) this.btn.addEventListener('click', () => this.openFreshSlot());
     window.addEventListener('resize', () => this.layout());
+
+    /* Trade Up controls live inside the result panel, which is re-rendered
+       after every open, so they are handled by delegation. */
+    if (this.resultEl) {
+      this.resultEl.addEventListener('click', (e) => {
+        if (e.target.closest('[data-trade-up]')) this.tradeUp();
+        else if (e.target.closest('[data-keep-it]')) this.keepIt();
+      });
+    }
   }
 
   /* ------------------------------------------------------------------ setup */
 
   setTier(tierId) {
-    this.tier = this.src.tiers[tierId] || this.src.tiers[this.src.defaultTier];
+    this.tier = TIER_BY_ID[tierId] || TIER_BY_ID[DEFAULT_TIER];
     this.scope.dataset.reelTier = this.tier.id;
-    this.counts = apportionCells(this.tier.odds, this.src.order, REEL_CELLS);
-    this.buildStrip();
-    this.renderComposition();
+    /* Switching tier abandons any Trade Up in progress. */
+    this.tradeUps = 0;
+    this.extraSpend = 0;
+    this.tradedAway = [];
+    this.poolFrom = null;
+    this.setPool(tierOddsList(this.tier));
     this.resetResult();
+    this.renderTally();
   }
 
-  /** A deterministic-ish interleave, so identical rarities don't clump. */
+  /** Point the reel at an odds list — base tier odds, or a Trade Up pool. */
+  setPool(list) {
+    this.pool = list;
+    this.counts = apportionCells(
+      list.reduce((a, r) => { a[r.id] = r.pct; return a; }, {}),
+      list.map((r) => r.id),
+      REEL_CELLS
+    );
+    this.opens = 0;
+    this.tally = {};
+    this.buildStrip();
+    this.renderComposition();
+    this.describeStrip();
+  }
+
+  currentOdds() {
+    return this.pool.reduce((a, r) => { a[r.id] = r.pct; return a; }, {});
+  }
+
+  describeStrip() {
+    if (!this.viewport) return;
+    const sentence = this.pool.map((r) => `${r.label} ${r.pct}%`).join(', ');
+    this.viewport.setAttribute('role', 'img');
+    this.viewport.setAttribute(
+      'aria-label',
+      this.poolFrom
+        ? `Trade Up strip after giving up a ${RARITIES[this.poolFrom].label}. ` +
+          `${REEL_CELLS} cells apportioned from the published Trade Up odds: ${sentence}.`
+        : `Reveal strip for the ${this.tier.name}. ${REEL_CELLS} cells apportioned ` +
+          `from the published odds: ${sentence}.`
+    );
+  }
+
+  /** Build the strip. `winnerId` places that outcome at the landing index. */
   buildStrip(winnerId) {
-    const pool = [];
+    const cells = [];
     Object.keys(this.counts).forEach((id) => {
-      for (let i = 0; i < this.counts[id]; i++) pool.push(id);
+      for (let i = 0; i < this.counts[id]; i++) cells.push(id);
     });
 
-    // Spread out rarities: sort by a hash so the strip looks mixed but every
-    // count is preserved exactly.
-    pool.sort((a, b) => {
-      const ha = (a.charCodeAt(0) * 37 + pool.indexOf(a)) % 101;
-      const hb = (b.charCodeAt(0) * 37 + pool.indexOf(b)) % 101;
-      return ha - hb;
-    });
-    for (let i = pool.length - 1; i > 0; i--) {
+    /* Shuffle so identical rarities don't sit in blocks. Counts are untouched. */
+    for (let i = cells.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
+      [cells[i], cells[j]] = [cells[j], cells[i]];
     }
 
-    /* Put the winner at the landing index by SWAPPING, never by inserting —
-       swapping preserves the exact published composition of the strip. */
+    /* Place the winner by SWAPPING, never inserting — swapping preserves the
+       exact published composition of the strip. */
     if (winnerId) {
-      const at = pool.indexOf(winnerId, 0);
-      const idx = at === -1 ? pool.findIndex((p) => p === winnerId) : at;
+      const idx = cells.indexOf(winnerId);
       if (idx !== -1) {
-        [pool[REEL_WIN_INDEX], pool[idx]] = [pool[idx], pool[REEL_WIN_INDEX]];
+        [cells[REEL_WIN_INDEX], cells[idx]] = [cells[idx], cells[REEL_WIN_INDEX]];
       }
     }
 
-    this.strip = pool.map((id) => {
-      const rarity = this.src.rarities[id];
-      const options = this.src.catalog.filter((c) => c.rarity === id);
-      const art = options.length ? options[Math.floor(Math.random() * options.length)] : null;
+    const byId = this.pool.reduce((a, r) => { a[r.id] = r; return a; }, {});
+    const catalog = typeof ITEM_CATALOG !== 'undefined' ? ITEM_CATALOG : [];
+
+    this.strip = cells.map((id) => {
+      const rarity = byId[id];
+      const options = catalog.filter((c) => c.rarity === id);
+      const art = options.length
+        ? options[Math.floor(Math.random() * options.length)]
+        : null;
       return { rarity, art };
     });
 
@@ -149,8 +177,8 @@ class Reel {
       <div class="reel__cell" data-rarity="${cell.rarity.id}" data-index="${i}"
            style="--cell-tint:${cell.rarity.color}">
         ${cell.art
-          ? `<img class="reel__img" src="${cell.art.file}" alt="" width="64" height="64" loading="eager" decoding="async">`
-          : `<span class="reel__blank" aria-hidden="true"></span>`}
+          ? `<img class="reel__img" src="${cell.art.file}" alt="" width="64" height="64" decoding="async">`
+          : '<span class="reel__blank" aria-hidden="true"></span>'}
         <span class="reel__cell-label">${cell.rarity.label}</span>
       </div>`).join('');
 
@@ -168,41 +196,58 @@ class Reel {
 
   renderComposition() {
     if (!this.compEl) return;
-    const rows = this.src.order
-      .filter((id) => this.counts[id])
-      .map((id) => {
-        const r = this.src.rarities[id];
-        return `<span><span class="dot" style="background:${r.color}"></span>${this.counts[id]}&times; ${r.label} <span class="muted">(${this.tier.odds[id]}%)</span></span>`;
-      }).join('');
+    const rows = this.pool.map((r) => `
+      <span><span class="dot" style="background:${r.color}"></span>${this.counts[r.id]}&times;
+      ${r.label} <span class="muted">(${r.pct}%)</span></span>`).join('');
     this.compEl.innerHTML = `
       <p class="muted" style="margin:0 0 var(--sp-2);font-size:var(--t-xs)">
         <b>What's on this strip.</b> ${REEL_CELLS} cells, apportioned from the published
-        odds &mdash; count them if you like.
+        odds &mdash; count them if you like. We never pad it with extra rare pieces.
       </p>
       <div class="odds-legend">${rows}</div>`;
   }
 
-  /* --------------------------------------------------------------- spinning */
+  /* --------------------------------------------------------------- opening */
 
-  spin() {
-    if (this.spinning) return;
+  /**
+   * The main button always simulates a brand-new feature slot, so if the reel
+   * is showing a Trade Up pool it resets to base odds first. Without this, a
+   * visitor who traded up would keep opening the upgraded pool for free and
+   * read far better odds than they would actually get.
+   */
+  openFreshSlot() {
+    if (this.running) return;
+    if (this.poolFrom) this.resetToBaseOdds();
+    this.open();
+  }
 
-    /* 1. Resolve the outcome first, from the published table. The rarity order
-          is passed explicitly so this works for either product ladder. */
-    const winnerId = drawRarity(this.tier.odds, this.src.order);
+  resetToBaseOdds() {
+    this.tradeUps = 0;
+    this.extraSpend = 0;
+    this.tradedAway = [];
+    this.poolFrom = null;
+    this.setPool(tierOddsList(this.tier));
+    this.renderTally();
+  }
+
+  open() {
+    if (this.running) return;
+
+    /* 1. Resolve the outcome first, from whatever table the reel is on. */
+    const winnerId = drawRarity(this.currentOdds(), this.pool.map((r) => r.id));
     if (!winnerId) return;
 
     /* 2. Rebuild the strip with that outcome at the landing index. */
     this.buildStrip(winnerId);
     const winner = this.strip[REEL_WIN_INDEX];
 
-    /* 3. Compute the offset that centres the winning cell under the marker.
-          Dead centre — no random drift toward the cell edge, because that is
-          exactly how case-openers fake a near miss. */
+    /* 3. Offset that centres the winning cell under the marker. Dead centre —
+          no drift toward the cell edge, because that is precisely how these
+          animations fake a near miss. */
     const target = -(REEL_WIN_INDEX * this.step + this.cellW / 2
                      - this.viewport.clientWidth / 2);
 
-    this.spinning = true;
+    this.running = true;
     this.scope.classList.add('is-spinning');
     if (this.btn) {
       this.btn.disabled = true;
@@ -211,31 +256,30 @@ class Reel {
     }
     if (this.resultEl) {
       this.resultEl.classList.remove('is-hit');
-      this.resultEl.innerHTML = `<p class="eyebrow">Opening</p>`;
+      this.resultEl.innerHTML = '<p class="eyebrow">Opening</p><p class="muted" style="margin:0">Let\u2019s see\u2026</p>';
     }
 
     const finish = () => {
       this.offset = target;
       this.track.style.transform = `translate3d(${target}px,0,0)`;
-      this.spinning = false;
+      this.running = false;
       this.scope.classList.remove('is-spinning');
-      const won = this.track.children[REEL_WIN_INDEX];
-      if (won) won.classList.add('is-won');
+      const cell = this.track.children[REEL_WIN_INDEX];
+      if (cell) cell.classList.add('is-won');
       if (this.btn) {
         this.btn.disabled = false;
         this.btn.textContent = this.btn.dataset.label || 'Open again';
       }
-      this.showResult(winner);
+      this.recordResult(winner.rarity, winner.art);
     };
 
     if (prefersReducedMotion()) { finish(); return; }
 
     const start = performance.now();
-    const from = 0;
     const step = (now) => {
       const p = Math.min(1, (now - start) / REEL_DURATION);
       const eased = 1 - Math.pow(1 - p, 5);          // easeOutQuint
-      this.offset = from + (target - from) * eased;
+      this.offset = target * eased;
       this.track.style.transform = `translate3d(${this.offset}px,0,0)`;
       this.tickMarker();
       if (p < 1) requestAnimationFrame(step);
@@ -247,7 +291,9 @@ class Reel {
   /** Pulse the marker as each cell boundary crosses it. */
   tickMarker() {
     if (!this.marker || !this.step) return;
-    const idx = Math.round((-this.offset + this.viewport.clientWidth / 2 - this.cellW / 2) / this.step);
+    const idx = Math.round(
+      (-this.offset + this.viewport.clientWidth / 2 - this.cellW / 2) / this.step
+    );
     if (idx !== this.lastCell) {
       this.lastCell = idx;
       this.marker.animate(
@@ -259,6 +305,99 @@ class Reel {
     }
   }
 
+  /* -------------------------------------------------------------- trade up */
+
+  /** Move the reel onto the Trade Up pool and open it. */
+  tradeUp() {
+    if (this.running) return;
+    const from = this.lastResult;
+    if (!from || !canTradeUpFrom(from.id)) return;
+    if (this.tradeUps >= TRADE_UP.maxPerSlot) return;
+
+    const pool = tradeUpPool(this.tier, from.id);
+    if (!pool.length) return;
+
+    this.tradeUps += 1;
+    this.extraSpend += tradeUpPrice(this.tier);
+    this.tradedAway.push(from);
+    this.poolFrom = from.id;
+
+    this.setPool(pool);
+    this.open();
+  }
+
+  /** Decline the offer — just clears the prompt. */
+  keepIt() {
+    if (!this.resultEl) return;
+    const kept = this.resultEl.querySelector('[data-offer]');
+    if (kept) kept.remove();
+  }
+
+  /**
+   * The Trade Up offer, rendered only when the last result is eligible and the
+   * cap has not been reached. Shows the exact new odds and the floor guarantee
+   * before any money is notionally spent.
+   */
+  tradeUpOfferHTML(seg) {
+    if (!canTradeUpFrom(seg.id)) return '';
+    if (this.tradeUps >= TRADE_UP.maxPerSlot) {
+      return `<p class="sim-note" data-offer style="margin-top:var(--sp-4)">
+        ${icon('info')}
+        <span><b>Trade Up already used on this slot.</b> It's capped at
+        ${TRADE_UP.maxPerSlot} per feature slot on purpose &mdash; so this can't
+        turn into a chase. <a href="faq.html#tradeup">Why we cap it</a></span>
+      </p>`;
+    }
+
+    const pool = tradeUpPool(this.tier, seg.id);
+    if (!pool.length) return '';
+    const floor = tradeUpFloor(this.tier, seg.id);
+    const fee = formatMoney(tradeUpPrice(this.tier));
+
+    return `
+      <div data-offer style="margin-top:var(--sp-4);padding-top:var(--sp-4);border-top:2px dashed var(--paper-line)">
+        <p class="eyebrow" style="margin-bottom:var(--sp-2)">Not what you hoped for?</p>
+        <p style="margin:0 0 var(--sp-3);font-size:var(--t-sm)">
+          <b>Trade it up for ${fee}</b> (10% of the box). You give up the
+          ${seg.label} and draw again from a pool with it &mdash; and everything
+          below it &mdash; removed.
+        </p>
+        <div class="odds-bar" role="img" aria-label="Trade Up odds: ${pool.map((r) => `${r.label} ${r.pct}%`).join(', ')}">
+          ${pool.map((r) => `<span class="odds-bar__seg" data-rarity="${r.id}" style="width:${r.pct}%" title="${r.label} ${r.pct}%"></span>`).join('')}
+        </div>
+        <div class="odds-legend" style="margin-top:var(--sp-3)">
+          ${pool.map((r) => `<span><span class="dot" data-rarity="${r.id}" style="background:${r.color}"></span>${r.label} ${r.pct}%</span>`).join('')}
+        </div>
+        <p class="pill pill--sage" style="margin:var(--sp-3) 0">
+          ${icon('shield')} Guaranteed upgrade &mdash; worst case is ${floor.label}
+        </p>
+        <p class="muted" style="margin:0 0 var(--sp-3);font-size:var(--t-xs)">
+          You cannot land lower than what you traded, so there is nothing to lose
+          and nothing to chase. Vintage Rare is never a Trade Up outcome &mdash;
+          it's too scarce to sell a shortcut to. The ${seg.label} you give up goes
+          back into our pool for another box, not in a bin.
+        </p>
+        <div class="cluster">
+          <button class="btn btn--sun" type="button" data-trade-up>Trade up for ${fee}</button>
+          <button class="link-btn" type="button" data-keep-it>Keep the ${seg.label}</button>
+        </div>
+      </div>`;
+  }
+
+  /** Running ledger of Trade Up spend, so the total is never hidden. */
+  ledgerHTML() {
+    if (!this.tradeUps) return '';
+    const given = this.tradedAway.map((r) => r.label).join(', ');
+    return `
+      <p class="muted" style="margin:var(--sp-3) 0 0;font-size:var(--t-xs)">
+        <b>Trade Up ledger:</b> ${this.tradeUps} used &middot;
+        ${formatMoney(this.extraSpend)} extra &middot; gave up ${given}
+        (re-circulated, not discarded) &middot; box total
+        ${formatMoney(this.tier.price + this.extraSpend)}.
+        <br>Press <b>Open</b> for a fresh slot at base odds.
+      </p>`;
+  }
+
   /* ---------------------------------------------------------------- results */
 
   resetResult() {
@@ -267,43 +406,94 @@ class Reel {
     this.resultEl.innerHTML = `
       <p class="eyebrow">Practice open</p>
       <p class="muted" style="margin:0">
-        Open the ${this.tier.name} to see what a feature slot can land on.
-        Free, unlimited, reserves nothing.
+        Open it to see what the ${this.tier.name} feature slot can land on.
+        Free, unlimited, and it doesn't reserve anything.
       </p>`;
   }
 
-  showResult(cell) {
-    if (!this.resultEl) return;
-    const r = cell.rarity;
-    const pct = this.tier.odds[r.id];
-    const art = cell.art;
-    const lb = this.src.lookbook
-      ? ` <a href="${this.src.lookbook}?tag=${r.id}">See all ${r.label} ${this.src.noun}s</a>`
-      : '';
+  recordResult(seg, art) {
+    this.opens += 1;
+    this.tally[seg.id] = (this.tally[seg.id] || 0) + 1;
+    this.lastResult = seg;
+    this.renderTally();
 
-    this.resultEl.classList.add('is-hit');
-    this.resultEl.innerHTML = `
-      <p class="eyebrow">You landed on</p>
-      <div style="display:flex;gap:var(--sp-4);align-items:center">
-        ${art ? `<span class="item-thumb__frame" style="background:color-mix(in srgb, ${r.color} 16%, var(--paper))">
-            <img class="item-thumb__img" src="${art.file}" alt="" width="52" height="52">
-          </span>` : ''}
-        <span>
-          <span class="chip" data-rarity="${r.id}" style="background:color-mix(in srgb, ${r.color} 22%, var(--paper))">
-            <span class="dot" style="background:${r.color}"></span>${r.label} &middot; ${pct}% chance
+    if (this.resultEl) {
+      const traded = this.tradeUps > 0;
+      this.resultEl.classList.add('is-hit');
+      this.resultEl.innerHTML = `
+        <p class="eyebrow">${traded ? 'After trading up, you landed on' : 'You landed on'}</p>
+        <div style="display:flex;gap:var(--sp-4);align-items:center;flex-wrap:wrap">
+          ${art ? `<span class="item-thumb__frame" style="background:color-mix(in srgb, ${seg.color} 16%, var(--paper))">
+              <img class="item-thumb__img" src="${art.file}" width="52" height="52"
+                   alt="Pixel-art illustration of a ${art.colourway.toLowerCase()} ${art.typeLabel.toLowerCase()}">
+            </span>` : ''}
+          <span>
+            <span class="chip" data-rarity="${seg.id}">
+              <span class="dot" data-rarity="${seg.id}" style="background:${seg.color}"></span>
+              ${seg.label} &middot; ${seg.pct}% chance
+            </span>
+            ${art ? `<p style="margin:var(--sp-2) 0 0;font-weight:800;font-size:var(--t-sm)">${art.name}</p>` : ''}
           </span>
-          ${art ? `<p style="margin:var(--sp-2) 0 0;font-weight:800;font-size:var(--t-sm)">${art.name}</p>` : ''}
-        </span>
-      </div>
-      <p class="wheel-result__example" style="margin-top:var(--sp-3)">${r.blurb}</p>
-      <p class="wheel-result__example">${r.resaleBand}.${lb}</p>
-      <p class="sim-note" style="margin-top:var(--sp-3)">
-        ${icon('info')}
-        <span><b>Landed dead centre.</b> We never drift the marker toward the edge of
-        your cell to fake a near miss &mdash; the strip stops exactly on the result that
-        was drawn before the animation began.</span>
-      </p>`;
-    this.resultEl.setAttribute('aria-live', 'polite');
+        </div>
+        <p class="reveal-result__example" style="margin-top:var(--sp-3)">${seg.blurb}</p>
+        <p class="reveal-result__example">
+          ${seg.resaleBand}.${art ? ` One of
+          <a href="lookbook.html?tag=${seg.id}">${itemsByRarity(seg.id).length} ${seg.label} pieces</a>
+          in the catalogue.` : ''}
+        </p>
+        <p class="sim-note" style="margin-top:var(--sp-3)">
+          ${icon('info')}
+          <span><b>Landed dead centre.</b> We never drift the marker toward the edge of
+          your cell to fake a near miss &mdash; the strip stops exactly on the outcome
+          that was drawn before the animation began.</span>
+        </p>
+        ${this.ledgerHTML()}
+        ${this.tradeUpOfferHTML(seg)}`;
+      this.resultEl.setAttribute('aria-live', 'polite');
+    }
+
+    if (seg.id === 'rare' || seg.id === 'designer') this.fireConfetti(seg.color);
+  }
+
+  renderTally() {
+    if (!this.tallyEl) return;
+    if (!this.opens) {
+      this.tallyEl.innerHTML = `<p class="muted" style="margin:0">
+        Open it a few times and we\u2019ll show your results next to the published odds,
+        so you can check the reel behaves.</p>`;
+      return;
+    }
+    const rows = this.pool.map((r) => {
+      const got = this.tally[r.id] || 0;
+      const observed = ((got / this.opens) * 100).toFixed(0);
+      return `<tr>
+        <td><span class="chip" data-rarity="${r.id}"><span class="dot" data-rarity="${r.id}" style="background:${r.color}"></span>${r.label}</span></td>
+        <td>${got}</td>
+        <td>${observed}% <span class="muted">/ ${r.pct}%</span></td>
+      </tr>`;
+    }).join('');
+
+    this.tallyEl.innerHTML = `
+      <table class="odds-table">
+        <caption>Your ${this.opens} open${this.opens > 1 ? 's' : ''}: observed rate vs published rate. Small samples wander \u2014 that\u2019s how probability works.</caption>
+        <thead><tr><th scope="col">Outcome</th><th scope="col">Hits</th><th scope="col">Yours / ours</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  fireConfetti(color) {
+    if (!this.confettiEl || prefersReducedMotion()) return;
+    const palette = [color, '#f4b429', '#e4572e', '#3c7a4e', '#3e9bc0', '#f7f2e6'];
+    this.confettiEl.classList.remove('is-firing');
+    this.confettiEl.innerHTML = Array.from({ length: 34 }, () => {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 90 + Math.random() * 150;
+      const rot = `${Math.random() * 720 - 360}deg`;
+      const bg = palette[Math.floor(Math.random() * palette.length)];
+      return `<span style="--dx:${Math.cos(angle) * dist}px;--dy:${Math.sin(angle) * dist}px;--rot:${rot};background:${bg}"></span>`;
+    }).join('');
+    void this.confettiEl.offsetWidth;
+    this.confettiEl.classList.add('is-firing');
   }
 }
 
@@ -312,97 +502,9 @@ class Reel {
    -------------------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
   const reels = Array.from(document.querySelectorAll('[data-reel-scope]'))
-    .map((s) => new Reel(s));
-  if (!reels.length) return;
+    .map((scope) => new Reel(scope));
 
-  window.SecondSpinReels = reels;
-
-  /* Tier switcher for the card line */
-  document.querySelectorAll('[data-card-tier-switch]').forEach((group) => {
-    group.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-card-tier-value]');
-      if (!btn) return;
-      const id = btn.dataset.cardTierValue;
-      group.querySelectorAll('[data-card-tier-value]').forEach((b) =>
-        b.setAttribute('aria-pressed', String(b === btn)));
-      reels.forEach((r) => r.setTier && r.setTier(id));
-      syncCardBindings(id);
-      if (history.replaceState) history.replaceState(null, '', `?tier=${id}`);
-    });
-  });
-
-  /* Reveal-mode toggle: wheel or reel (clothing product page) */
-  document.querySelectorAll('[data-reveal-toggle]').forEach((group) => {
-    group.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-reveal-mode]');
-      if (!btn) return;
-      const mode = btn.dataset.revealMode;
-      group.querySelectorAll('[data-reveal-mode]').forEach((b) =>
-        b.setAttribute('aria-pressed', String(b === btn)));
-      document.querySelectorAll('[data-reveal-panel]').forEach((p) => {
-        p.hidden = p.dataset.revealPanel !== mode;
-      });
-      /* The reel measures cell geometry, which is unavailable while hidden. */
-      if (mode === 'reel') reels.forEach((r) => r.layout && r.layout());
-      try { localStorage.setItem('secondspin.reveal', mode); } catch { /* private mode */ }
-    });
-  });
-
-  /* Restore the visitor's preferred reveal mode */
-  let saved = null;
-  try { saved = localStorage.getItem('secondspin.reveal'); } catch { /* ignore */ }
-  if (saved) {
-    const btn = document.querySelector(`[data-reveal-mode="${saved}"]`);
-    if (btn) btn.click();
-  }
-
-  const requested = new URLSearchParams(location.search).get('tier');
-  if (requested && typeof CARD_TIER_BY_ID !== 'undefined' && CARD_TIER_BY_ID[requested]) {
-    const btn = document.querySelector(`[data-card-tier-value="${requested}"]`);
-    if (btn) btn.click();
-  } else if (document.querySelector('[data-card-bind]')) {
-    syncCardBindings(DEFAULT_CARD_TIER);
-  }
+  /* Exposed for debugging and automated testing: inspect strip composition,
+     force a tier, or verify cell counts against the published odds. */
+  window.SecondSpin = { reels, TIERS, RARITIES, drawRarity, OddsModal };
 });
-
-/** Bind the card product page's visible fields from card-data.js. */
-function syncCardBindings(tierId) {
-  if (typeof CARD_TIER_BY_ID === 'undefined') return;
-  const t = CARD_TIER_BY_ID[tierId];
-  if (!t) return;
-  const set = (k, v) => document.querySelectorAll(`[data-card-bind="${k}"]`)
-    .forEach((el) => { el.textContent = v; });
-
-  set('name', t.name);
-  set('price', t.priceLabel);
-  set('items', t.itemCount);
-  set('tagline', t.tagline);
-  set('featureSlots', String(t.featureSlots));
-  set('ships', t.shipsIn);
-  set('odds', cardOddsSentence(t));
-  set('standout', `${cardStandoutPerBox(t)}%`);
-  set('score', String(t.sustainScore));
-  set('grade', t.sustainGrade);
-
-  document.querySelectorAll('[data-card-guarantee]').forEach((el) => {
-    el.textContent = t.guarantee || 'No condition guarantee on this tier — it is our entry bulk lot.';
-  });
-  document.querySelectorAll('[data-card-features]').forEach((el) => {
-    el.innerHTML = t.features.map((f) => `<li>${icon('check')}<span>${f}</span></li>`).join('');
-  });
-  document.querySelectorAll('[data-card-ring]').forEach((el) => {
-    el.style.setProperty('--pct', t.sustainScore);
-  });
-
-  const list = cardOddsList(t);
-  document.querySelectorAll('[data-card-oddsbar]').forEach((el) => {
-    el.innerHTML = list.map((r) =>
-      `<span class="odds-bar__seg" style="width:${r.pct}%;background:${r.color}" title="${r.label} ${r.pct}%"></span>`).join('');
-    el.setAttribute('role', 'img');
-    el.setAttribute('aria-label', `Odds for one feature slot: ${cardOddsSentence(t)}`);
-  });
-  document.querySelectorAll('[data-card-oddslegend]').forEach((el) => {
-    el.innerHTML = list.map((r) =>
-      `<span><span class="dot" style="background:${r.color}"></span>${r.label} ${r.pct}%</span>`).join('');
-  });
-}

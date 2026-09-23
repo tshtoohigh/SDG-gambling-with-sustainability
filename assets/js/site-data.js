@@ -2,7 +2,7 @@
    Second Spin — Site data (single source of truth)
    --------------------------------------------------------------------------
    Everything about rarities, odds, tiers and impact figures lives here.
-   The wheel, the odds modal, the tier cards and the product page all read
+   The reel, the odds modal, the tier cards and the product page all read
    from this file, so the "fun" UI and the "honest" disclosure can never
    drift apart. Change a number here and it changes everywhere.
    ========================================================================== */
@@ -347,7 +347,7 @@ function canTradeUpFrom(rarityId) {
 
 /**
  * Largest-remainder rounding to 1dp that still sums to exactly 100.
- * Needed because the wheel draws its arcs from the published percentages, so
+ * Needed because the reel apportions its cells from the published percentages, so
  * those percentages must total 100 or the geometry stops matching the label.
  */
 function pctsSummingTo100(weights) {

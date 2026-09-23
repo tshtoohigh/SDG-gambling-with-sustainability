@@ -34,7 +34,6 @@
     <nav class="nav" id="site-nav" data-nav aria-label="Main">
       <ul class="nav__list">
         <li><a class="nav__link" href="shop.html" aria-current="page">Shop boxes</a></li>
-        <li><a class="nav__link" href="cards.html">Cards</a></li>
         <li><a class="nav__link" href="lookbook.html">Lookbook</a></li>
         <li><a class="nav__link" href="impact.html">Our impact</a></li>
         <li><a class="nav__link" href="about.html">Our story</a></li>
@@ -63,7 +62,7 @@
       <h1>Three tiers. One published odds table each.</h1>
       <p class="lead">
         Same sourcing, same sorters, same paper wrapping. What changes between tiers is the
-        number of <b>feature slots</b> and how good your chances are on each one. Spin the wheel
+        number of <b>feature slots</b> and how good your chances are on each one. Open the reel
         for any tier below before you decide.
       </p>
       <div class="cluster" style="margin-top:var(--sp-5)">
@@ -78,55 +77,51 @@
   <section class="section section--tight" aria-labelledby="preview-title">
     <div class="container">
       <div class="section-head">
-        <p class="eyebrow"><span data-icon="wheel" style="width:16px"></span> Odds preview</p>
-        <h2 id="preview-title">Try any tier's wheel</h2>
+        <p class="eyebrow"><span data-icon="box" style="width:16px"></span> Odds preview</p>
+        <h2 id="preview-title">Try any tier's reveal</h2>
         <p class="lead">
-          The wheel is drawn from the published odds table, to scale. Switch tiers and watch the
-          slices change &mdash; that's the only thing your money changes.
+          The strip is built from the published odds table. Switch tiers and watch the cell
+          mix change &mdash; that's the only thing your money changes.
         </p>
       </div>
 
-      <div class="wheel-block" data-wheel-scope data-wheel-tier="classic">
-        <div class="wheel-stage" data-wheel-stage>
-          <canvas class="wheel-stage__canvas" data-wheel-canvas></canvas>
-          <svg class="wheel-stage__pointer" data-wheel-pointer viewBox="0 0 34 44" aria-hidden="true">
-            <path d="M17 42 L3 10 A16 16 0 0 1 31 10 Z" fill="#f7f2e6" stroke="#16241b" stroke-width="3" stroke-linejoin="round"/>
-            <circle cx="17" cy="13" r="4.5" fill="#e4572e" stroke="#16241b" stroke-width="2.5"/>
-          </svg>
-          <div class="wheel-stage__hub" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#16241b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 20c0-8 5-14 16-15 1 11-5 16-13 16H4z"/><path d="M4 20c3-5 7-8 12-9"/>
-            </svg>
-          </div>
-          <div class="confetti" data-confetti aria-hidden="true"></div>
-        </div>
-
-        <div class="wheel-controls">
+      <div class="stack">
           <div class="tier-switch" data-tier-switch role="group" aria-label="Choose a tier to preview">
             <button class="tier-switch__btn" type="button" data-tier-value="starter" aria-pressed="false">Starter $10</button>
             <button class="tier-switch__btn" type="button" data-tier-value="classic" aria-pressed="true">Classic $22</button>
             <button class="tier-switch__btn" type="button" data-tier-value="premium" aria-pressed="false">Premium $45</button>
           </div>
+          <p class="pill pill--sage">Showing: <b data-tier-bind="name">Classic Box</b> &middot;
+            chance a feature slot beats a basic: <b data-tier-bind="standout">87.8%</b></p>
 
-          <p class="pill pill--sage">Showing: <b data-tier-bind="name">Classic Box</b></p>
-          <div class="wheel-result" data-wheel-result role="status"></div>
+          <div class="reel" data-reel-scope data-reel-tier="classic">
+          <div class="reel__viewport" data-reel-viewport>
+            <div class="reel__track" data-reel-track></div>
+            <div class="reel__marker" data-reel-marker aria-hidden="true"></div>
+            <div class="confetti" data-confetti aria-hidden="true"></div>
+          </div>
 
-          <div class="cluster">
-            <button class="btn btn--berry btn--lg" type="button" data-wheel-spin>Spin the wheel</button>
+          <div class="reel__controls">
+            <button class="btn btn--berry btn--lg" type="button" data-reel-open>Open the box</button>
             <button class="link-btn" type="button" data-odds-modal="classic" data-product-odds>See the full odds breakdown</button>
           </div>
 
-          <p class="sim-note">
+          <div class="reel__result" data-reel-result role="status"></div>
+          <div class="reel__composition" data-reel-composition></div>
+
+          <p class="sim-note" style="margin-top:var(--sp-4)">
             <span data-icon="info"></span>
             <span>
-              <b>Free, unlimited, and not the real draw.</b> Spinning reserves nothing and costs
-              nothing. Chance that at least one feature slot in this box lands on something other
-              than a basic: <b data-tier-bind="standout">51.6%</b>.
+              <b>A simulator, not the draw.</b> Opening this costs nothing and reserves
+              nothing. Two things we deliberately don't do: we don't pad the strip with
+              extra rare pieces to make it feel richer, and we don't drift the marker
+              toward the edge of your cell to fake a near miss. Those are the two
+              standard tricks in this format.
             </span>
           </p>
-          <div data-wheel-tally style="width:100%"></div>
+          <div data-reel-tally style="margin-top:var(--sp-4)"></div>
         </div>
-      </div>
+        </div>
     </div>
   </section>
 
@@ -432,7 +427,6 @@
       <div>
         <h4>Learn</h4>
         <ul class="footer-list">
-          <li><a href="cards.html">Card Vault</a></li>
           <li><a href="lookbook.html">Item lookbook</a></li>
           <li><a href="impact.html">Our impact</a></li>
           <li><a href="about.html">Our story</a></li>
@@ -482,6 +476,7 @@
 <script src="assets/js/site-data.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/item-catalog.js"></script>
-<script src="assets/js/wheel.js"></script>
+<script src="assets/js/reel.js"></script>
+<script src="assets/js/product.js"></script>
 </body>
 </html>

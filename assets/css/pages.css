@@ -267,9 +267,11 @@
   align-items: start;
   padding-block: var(--sp-6) var(--sp-8);
 }
+.product > * { min-width: 0; }
 @media (max-width: 960px) { .product { grid-template-columns: 1fr; gap: var(--sp-6); } }
 
 .product__stage {
+  min-width: 0;                 /* see the .reel note — prevents grid blowout */
   position: sticky; top: 92px;
   background:
     radial-gradient(520px 380px at 50% 30%, color-mix(in srgb, var(--sage) 40%, transparent), transparent 72%),
@@ -652,7 +654,7 @@
 }
 .breadth-note svg { width: 22px; height: 22px; flex: none; margin-top: 2px; }
 
-/* Sample-item thumbnail shown in the wheel result panel */
+/* Sample-item thumbnail shown in the reveal result panel */
 .item-thumb {
   display: flex; gap: var(--sp-3); align-items: center;
   margin-top: var(--sp-3);
@@ -675,6 +677,12 @@
 /* --------------------------------------------------------------------------
    Reveal reel — horizontal case-opening animation
    -------------------------------------------------------------------------- */
+/* min-width:0 is load-bearing. .reel__track is width:max-content (64 cells),
+   and a grid/flex item's automatic minimum size is min-content — so without
+   this the column expands to fit the whole strip instead of clipping it, and
+   blows the page layout out sideways. */
+.reel, .reel__viewport { min-width: 0; max-width: 100%; }
+
 .reel {
   background: var(--paper-2);
   border: 2px solid var(--ink);
@@ -787,26 +795,3 @@
   .reel__img, .reel__blank { width: 48px; height: 48px; }
 }
 
-/* Reveal-mode toggle (wheel vs reel) */
-.reveal-toggle {
-  display: inline-flex; gap: 4px;
-  padding: 4px;
-  background: var(--paper-2);
-  border: 2px solid var(--ink);
-  border-radius: var(--r-pill);
-}
-.reveal-toggle button {
-  display: inline-flex; align-items: center; gap: var(--sp-2);
-  padding: 0.45em 1em;
-  font-size: var(--t-xs); font-weight: 800;
-  background: transparent; color: var(--ink);
-  border: 0; border-radius: var(--r-pill);
-  cursor: pointer;
-}
-.reveal-toggle button svg { width: 15px; height: 15px; }
-.reveal-toggle button[aria-pressed="true"] { background: var(--forest); color: var(--paper); }
-
-/* Card tier cards reuse .tier but need their own header tints */
-.tier__top--bulk      { background: color-mix(in srgb, var(--sage) 30%, var(--paper)); }
-.tier__top--collector { background: color-mix(in srgb, var(--grape) 18%, var(--paper)); }
-.tier__top--vault     { background: color-mix(in srgb, var(--sun) 26%, var(--paper)); }

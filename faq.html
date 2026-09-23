@@ -34,7 +34,6 @@
     <nav class="nav" id="site-nav" data-nav aria-label="Main">
       <ul class="nav__list">
         <li><a class="nav__link" href="shop.html">Shop boxes</a></li>
-        <li><a class="nav__link" href="cards.html">Cards</a></li>
         <li><a class="nav__link" href="lookbook.html">Lookbook</a></li>
         <li><a class="nav__link" href="impact.html">Our impact</a></li>
         <li><a class="nav__link" href="about.html">Our story</a></li>
@@ -83,7 +82,7 @@
       <!-- ===================== ODDS & FAIRNESS ===================== -->
       <div class="faq-group" id="odds">
         <div class="faq-group__title">
-          <span data-icon="wheel"></span>
+          <span data-icon="scale"></span>
           <h2 style="margin:0;font-size:var(--t-xl)">Odds &amp; fairness</h2>
         </div>
 
@@ -115,13 +114,13 @@
         </details>
 
         <details class="qa">
-          <summary>Does spinning the wheel decide what I get? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <summary>Does opening the reel decide what I get? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
           <div class="qa__body">
             <p>
-              No, and we want to be blunt about it. The wheel on this site is a <b>visualiser</b>.
-              It shows you the published probability distribution, drawn to scale, so you can see
-              what you're buying a chance at. Spinning it is free, unlimited, reserves nothing and
-              changes nothing.
+              No, and we want to be blunt about it. The reel on this site is a <b>visualiser</b>.
+              Its 64 cells are apportioned from the published probability distribution, so you can
+              see &mdash; and count &mdash; what you're buying a chance at. Opening it is free,
+              unlimited, reserves nothing and changes nothing.
             </p>
             <p>
               Your actual box is assembled by a human sorter pulling against the same ratios. We
@@ -133,29 +132,30 @@
         </details>
 
         <details class="qa">
-          <summary>How do I know the wheel isn't rigged to look better than the real odds? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <summary>How do I know the reel isn't rigged to look better than the real odds? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
           <div class="qa__body">
             <p>Three things, all checkable:</p>
             <ul>
               <li>
-                <b>Segment sizes are generated from the odds table.</b> A 2% outcome occupies 2%
-                of the circle. We don't inflate rare slices to make them feel reachable, which is
-                the standard trick.
+                <b>Cell counts are generated from the odds table.</b> A 2% outcome occupies about
+                1 of 64 cells, and the strip prints its own composition so you can count it. We
+                never pad it with extra rare pieces, which is the standard trick.
               </li>
               <li>
-                <b>The outcome is drawn before the animation starts.</b> Nothing about the spin's
-                length or speed influences it, and there's no near-miss weighting that parks the
-                pointer just past a rare slice.
+                <b>The outcome is drawn before the animation starts.</b> Nothing about the scroll's
+                length or speed influences it, and the strip lands <b>dead centre</b> on your cell
+                &mdash; we never drift the marker toward the edge to manufacture a near miss, which
+                is the other standard trick in this format.
               </li>
               <li>
-                <b>The wheel keeps a running tally.</b> Spin twenty times and it shows your
+                <b>The reel keeps a running tally.</b> Open it twenty times and it shows your
                 observed rate next to the published rate. Small samples wander, but the numbers
                 converge.
               </li>
             </ul>
             <p>
               The code is in the open too: it's a single file,
-              <code>assets/js/wheel.js</code>, and the odds table it reads is in
+              <code>assets/js/reel.js</code>, and the odds table it reads is in
               <code>assets/js/site-data.js</code>.
             </p>
           </div>
@@ -278,7 +278,7 @@
             </p>
             <div style="overflow-x:auto">
               <table class="odds-table" style="min-width:560px">
-                <caption>Trade Up pools. The wheel draws these arcs to scale, exactly as it does the base odds.</caption>
+                <caption>Trade Up pools. The reel apportions its cells from these, exactly as it does the base odds.</caption>
                 <thead>
                   <tr>
                     <th scope="col">Box</th>
@@ -340,7 +340,7 @@
             <p>
               We did it that way round on purpose. Deciding while looking at a real garment is a
               different act from deciding while watching an animation, and only one of those is a
-              considered choice. The wheel on this site remains a
+              considered choice. The reel on this site remains a
               <a href="#odds">simulator</a>: you can spin it and preview Trade Up for free,
               forever, without spending anything.
             </p>
@@ -635,7 +635,7 @@
   <section class="cta-band">
     <div class="container container--narrow">
       <p class="eyebrow">Clear on everything?</p>
-      <h2>Go and spin the wheel.</h2>
+      <h2>Go and open one.</h2>
       <p class="lead">Free, unlimited, and it shows you exactly what you'd be buying a chance at.</p>
       <div class="cluster">
         <a class="btn btn--lg btn--sun" href="shop.html">Shop the three boxes</a>
@@ -688,7 +688,6 @@
       <div>
         <h4>Learn</h4>
         <ul class="footer-list">
-          <li><a href="cards.html">Card Vault</a></li>
           <li><a href="lookbook.html">Item lookbook</a></li>
           <li><a href="impact.html">Our impact</a></li>
           <li><a href="about.html">Our story</a></li>
@@ -737,6 +736,7 @@
 
 <script src="assets/js/site-data.js"></script>
 <script src="assets/js/app.js"></script>
-<script src="assets/js/wheel.js"></script>
+<script src="assets/js/reel.js"></script>
+<script src="assets/js/product.js"></script>
 </body>
 </html>

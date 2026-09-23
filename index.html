@@ -34,7 +34,6 @@
     <nav class="nav" id="site-nav" data-nav aria-label="Main">
       <ul class="nav__list">
         <li><a class="nav__link" href="shop.html">Shop boxes</a></li>
-        <li><a class="nav__link" href="cards.html">Cards</a></li>
         <li><a class="nav__link" href="lookbook.html">Lookbook</a></li>
         <li><a class="nav__link" href="impact.html">Our impact</a></li>
         <li><a class="nav__link" href="about.html">Our story</a></li>
@@ -70,7 +69,7 @@
 
         <div class="cluster hero__cta">
           <a class="btn btn--lg btn--berry" href="shop.html">Pick your box</a>
-          <a class="btn btn--lg btn--ghost" href="#try-the-wheel">Try the wheel first</a>
+          <a class="btn btn--lg btn--ghost" href="#try-the-reveal">Try the reveal first</a>
         </div>
 
         <div class="hero__trust">
@@ -82,18 +81,18 @@
 
       <div class="hero__art">
         <svg class="box-art" viewBox="0 0 420 340" role="img"
-             aria-label="An open box of rescued secondhand clothing in front of a five-segment prize wheel">
-          <!-- prize wheel behind -->
+             aria-label="An open box of rescued secondhand clothing in front of a reveal reel strip">
+          <!-- reveal reel strip behind -->
           <g>
-            <circle cx="300" cy="103" r="74" fill="#16241b"/>
-            <path d="M300 103 L300 39 A64 64 0 0 1 360.9 83.2 Z" fill="#7b5ea7"/>
-            <path d="M300 103 L360.9 83.2 A64 64 0 0 1 337.6 154.8 Z" fill="#f4b429"/>
-            <path d="M300 103 L337.6 154.8 A64 64 0 0 1 262.4 154.8 Z" fill="#e4572e"/>
-            <path d="M300 103 L262.4 154.8 A64 64 0 0 1 239.1 83.2 Z" fill="#3e9bc0"/>
-            <path d="M300 103 L239.1 83.2 A64 64 0 0 1 300 39 Z" fill="#3c7a4e"/>
-            <circle cx="300" cy="103" r="18" fill="#f7f2e6" stroke="#16241b" stroke-width="3"/>
-            <path d="M292 110c0-7 4.8-12.3 14.7-13.1.8 9.7-4.6 14-11.5 14h-3.2z" fill="#3c7a4e"/>
-            <path d="M300 22 l9 15 -18 0 z" fill="#f7f2e6" stroke="#16241b" stroke-width="2.5" stroke-linejoin="round"/>
+            <rect x="196" y="44" width="214" height="104" rx="12" fill="#f7f2e6" stroke="#16241b" stroke-width="3"/>
+            <rect x="200" y="58" width="38" height="76" rx="5" fill="#7b5ea7" stroke="#16241b" stroke-width="2"/>
+            <rect x="242" y="58" width="38" height="76" rx="5" fill="#f4b429" stroke="#16241b" stroke-width="2"/>
+            <rect x="284" y="58" width="38" height="76" rx="5" fill="#e4572e" stroke="#16241b" stroke-width="2"/>
+            <rect x="326" y="58" width="38" height="76" rx="5" fill="#3e9bc0" stroke="#16241b" stroke-width="2"/>
+            <rect x="368" y="58" width="38" height="76" rx="5" fill="#3c7a4e" stroke="#16241b" stroke-width="2"/>
+            <path d="M303 40 V152" stroke="#e4572e" stroke-width="4"/>
+            <path d="M303 32 l8 12 -16 0 z" fill="#e4572e" stroke="#16241b" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M303 160 l8 -12 -16 0 z" fill="#e4572e" stroke="#16241b" stroke-width="2" stroke-linejoin="round"/>
           </g>
 
           <!-- garments poking out -->
@@ -199,7 +198,7 @@
           <h3>Boxes are packed to the odds</h3>
           <p>
             Your box gets 4 everyday staples plus 1&ndash;2 <b>feature slots</b>. The feature
-            slots are filled against the same published probability table the wheel shows you.
+            slots are filled against the same published probability table the reel shows you.
           </p>
         </article>
         <article class="step reveal">
@@ -217,51 +216,45 @@
   <div class="edge-torn" style="background:var(--paper-2)"></div>
 
   <!-- ========================== TRY THE WHEEL ========================== -->
-  <section class="section section--paper2" id="try-the-wheel" aria-labelledby="wheel-title">
+  <section class="section section--paper2" id="try-the-reveal" aria-labelledby="reveal-title">
     <div class="container">
       <div class="section-head center">
-        <p class="eyebrow"><span data-icon="wheel" style="width:16px"></span> The reveal wheel</p>
-        <h2 id="wheel-title">Spin it before you spend anything</h2>
+        <p class="eyebrow"><span data-icon="box" style="width:16px"></span> The reveal reel</p>
+        <h2 id="reveal-title">Open one before you spend anything</h2>
         <p class="lead">
-          Most mystery-box brands hide their odds. Ours are drawn to scale: a 6% outcome takes
-          up exactly 6% of this wheel. Spin as many times as you like &mdash; it's free and it
-          reserves nothing.
+          Most mystery-box brands hide their odds. Ours are built into the strip: a 6% outcome
+          occupies exactly 4 of these 64 cells. Open it as many times as you like &mdash;
+          it's free and it reserves nothing.
         </p>
       </div>
 
-      <div class="wheel-block" data-wheel-scope data-wheel-tier="classic">
-        <div class="wheel-stage" data-wheel-stage>
-          <canvas class="wheel-stage__canvas" data-wheel-canvas></canvas>
-          <svg class="wheel-stage__pointer" data-wheel-pointer viewBox="0 0 34 44" aria-hidden="true">
-            <path d="M17 42 L3 10 A16 16 0 0 1 31 10 Z" fill="#f7f2e6" stroke="#16241b" stroke-width="3" stroke-linejoin="round"/>
-            <circle cx="17" cy="13" r="4.5" fill="#e4572e" stroke="#16241b" stroke-width="2.5"/>
-          </svg>
-          <div class="wheel-stage__hub" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#16241b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 20c0-8 5-14 16-15 1 11-5 16-13 16H4z"/><path d="M4 20c3-5 7-8 12-9"/>
-            </svg>
+      <div class="reel" data-reel-scope data-reel-tier="classic">
+          <div class="reel__viewport" data-reel-viewport>
+            <div class="reel__track" data-reel-track></div>
+            <div class="reel__marker" data-reel-marker aria-hidden="true"></div>
+            <div class="confetti" data-confetti aria-hidden="true"></div>
           </div>
-          <div class="confetti" data-confetti aria-hidden="true"></div>
-        </div>
 
-        <div class="wheel-controls">
-          <p class="pill pill--sage">Showing: Classic Box odds</p>
-          <div class="wheel-result" data-wheel-result role="status"></div>
-          <div class="cluster">
-            <button class="btn btn--berry btn--lg" type="button" data-wheel-spin>Spin the wheel</button>
+          <div class="reel__controls">
+            <button class="btn btn--berry btn--lg" type="button" data-reel-open>Open the box</button>
             <button class="link-btn" type="button" data-odds-modal="classic">See the full odds breakdown</button>
           </div>
-          <p class="sim-note">
+
+          <div class="reel__result" data-reel-result role="status"></div>
+          <div class="reel__composition" data-reel-composition></div>
+
+          <p class="sim-note" style="margin-top:var(--sp-4)">
             <span data-icon="info"></span>
             <span>
-              <b>This is a simulator, not the draw.</b> Spinning here doesn't buy, reserve or
-              change anything. Your real box is packed by a sorter against these same published
-              ratios. We show your hit-rate against ours below so you can check us.
+              <b>A simulator, not the draw.</b> Opening this costs nothing and reserves
+              nothing. Two things we deliberately don't do: we don't pad the strip with
+              extra rare pieces to make it feel richer, and we don't drift the marker
+              toward the edge of your cell to fake a near miss. Those are the two
+              standard tricks in this format.
             </span>
           </p>
-          <div data-wheel-tally style="width:100%"></div>
+          <div data-reel-tally style="margin-top:var(--sp-4)"></div>
         </div>
-      </div>
     </div>
   </section>
 
@@ -489,7 +482,6 @@
       <div>
         <h4>Learn</h4>
         <ul class="footer-list">
-          <li><a href="cards.html">Card Vault</a></li>
           <li><a href="lookbook.html">Item lookbook</a></li>
           <li><a href="impact.html">Our impact</a></li>
           <li><a href="about.html">Our story</a></li>
@@ -539,6 +531,7 @@
 <script src="assets/js/site-data.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/item-catalog.js"></script>
-<script src="assets/js/wheel.js"></script>
+<script src="assets/js/reel.js"></script>
+<script src="assets/js/product.js"></script>
 </body>
 </html>
