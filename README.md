@@ -2,7 +2,7 @@
 
 A six-page marketing and storefront site for a sustainable fashion startup selling
 **thrift blind boxes**: curated mystery boxes of rescued secondhand clothing, 5–6
-garments per box, with an interactive odds wheel.
+garments per box, with an interactive odds reveal reel.
 
 No build step, no dependencies, no network calls. Open `index.html` in a browser, or
 serve the folder:
@@ -20,11 +20,10 @@ normally.
 
 | File | Purpose |
 |---|---|
-| `index.html` | Homepage — hero, live impact counter, how-it-works, playable wheel, tier teaser, testimonials |
-| `shop.html` | All three tiers side by side, wheel with tier switcher, full comparison table |
-| `box.html` | Product page with the full wheel interaction. Accepts `?tier=starter\|classic\|premium` |
+| `index.html` | Homepage — hero, live impact counter, how-it-works, playable reveal reel, tier teaser, testimonials |
+| `shop.html` | All three tiers side by side, reel with tier switcher, full comparison table |
+| `box.html` | Product page with the full reveal interaction. Accepts `?tier=starter\|classic\|premium` |
 | `impact.html` | "Why it matters" — textile waste crisis, cited sources, measurement methodology, sustainability-score method |
-| `cards.html` | Card Vault — the collectibles line, with the reveal reel. Accepts `?tier=bulk\|collector\|vault` |
 | `lookbook.html` | All 200 catalogue garments as pixel art, filterable by rarity tag and garment category. Accepts `?tag=rare` |
 | `faq.html` | Odds & fairness, sourcing, sizing, shipping, returns policy for blind items |
 | `about.html` | Origin story, timeline, the team, five public commitments |
@@ -41,23 +40,29 @@ any tier is linkable.
 index.html  shop.html  box.html  impact.html  faq.html  about.html
 assets/
   css/
-    styles.css     design tokens, base, components (buttons, cards, wheel, modal, cart, tables)
+    styles.css     design tokens, base, components (buttons, cards, modal, cart, tables)
     pages.css      page-level compositions (hero, tiers, timeline, FAQ, impact, journey)
   js/
-    site-data.js   ← single source of truth: rarities, tier odds, impact figures, helpers
+    site-data.js   ← single source of truth: rarities, tier odds, Trade Up, impact figures
     app.js         nav, scroll reveal, impact counter, odds modal, cart, marquee, forms
-    wheel.js       the Wheel class + tier switcher + product-page data binding
+    reel.js        the Reel component (reveal animation + Trade Up)
+    product.js     tier switching and product-page data binding
+    item-catalog.js  generated garment catalogue (see tools/)
+    lookbook.js    lookbook rendering and filtering
+tools/
+  pixelkit.py              shared pixel-art toolkit (PRNG, Canvas, PNG encoder)
+  generate-assets.py       generates the 200 garment sprites + catalogue
 tests/
-  interaction-test.html    37 in-browser assertions (see Verification)
+  interaction-test.html    86 in-browser assertions (see Verification)
   screenshot-harness.html  scrolls a page to a selector for section screenshots
 ```
 
 ### One source of truth for the odds
 
 Every published percentage on the site is derived at runtime from the `TIERS` table in
-`assets/js/site-data.js`. The wheel geometry, the odds bars, the legends, the odds
-modal and the product-page copy all read from that one object, so the playful UI and the
-honest disclosure cannot drift apart. `site-data.js` also asserts at load time that each
+`assets/js/site-data.js`. The reel's cell apportionment, the odds bars, the legends, the
+odds modal and the product-page copy all read from that one object, so the playful UI and
+the honest disclosure cannot drift apart. `site-data.js` also asserts at load time that each
 tier's odds sum to exactly 100% and logs a console error if they don't.
 
 To change the odds, edit `TIERS[].odds` and nothing else.
@@ -71,30 +76,45 @@ point.
 
 ---
 
-## The wheel, and why it's built this way
+## The reveal reel, and why it's built this way
 
-The brief asked for a wheel that feels exciting but isn't deceptive. Four rules drive
-the implementation in `assets/js/wheel.js`:
+The site has one reveal mechanic: a horizontal strip of real catalogue garments scrolls
+past a centre marker, decelerates over 5.2s, and stops on your result. It lives on the
+homepage, the shop page and the product page.
 
-1. **Honest geometry.** Segment arcs are computed directly from the odds table, so a 2%
-   outcome occupies exactly 2% of the circle. Rare slices are never visually inflated.
-   When a slice is too thin for a label, the label is dropped rather than the slice
-   widened.
-2. **Draw first, animate second.** `drawRarity()` resolves the outcome *before* the
-   animation begins; the spin only visualises a decision already made. Nothing about
-   the animation's speed or duration can influence the result, and there is no near-miss
-   weighting that parks the pointer just past a rare slice.
-3. **No stakes.** Spinning is free and unlimited, reserves nothing and buys nothing. The
-   UI says so next to every wheel, and the wheel is labelled a simulator, not the draw.
-4. **Self-auditing.** After each spin the wheel shows the visitor's observed rate beside
-   the published rate, so the maths is checkable on the spot.
+![The reveal reel](docs/screenshots/60-reel.png)
 
-Supporting this, the site deliberately omits loot-box mechanics: no countdown timers,
-no streak bonuses, no artificial scarcity, and no paid re-roll with a downside (see
-[Trade Up](#trade-up) below). `impact.html` also declines
-to publish per-box water or CO₂ figures, on the grounds that the conversion factors for
-garment reuse vary too widely to state one honestly — and says that out loud rather than
-quietly omitting it.
+This pattern is borrowed from game case-openers, which are built to manipulate. This one
+is built not to, and `assets/js/reel.js` is organised around four rules:
+
+1. **The strip *is* the odds table.** Cell counts are apportioned from the published
+   percentages by largest-remainder, so a 6% outcome occupies exactly **4 of 64 cells**
+   and a 2% outcome exactly 1. The UI prints its own composition underneath so a visitor
+   can count it. The strip is **never padded with extra rare pieces** to feel richer.
+2. **No manufactured near-miss.** This is the important one. Case-openers habitually
+   decelerate so the marker drifts to the very *edge* of your cell, with a jackpot cell
+   sitting just beyond — inventing an "so close!" that has no basis in the draw. This
+   lands **dead centre, every time**, and says so on screen. There is a test asserting
+   drift under 1.5px; it measures **0.00px**.
+3. **Draw first, animate second.** `drawRarity()` resolves the outcome *before* the
+   animation begins, so nothing about the scroll can influence it. The winner is then
+   placed by **swapping** cells, which preserves the published composition exactly rather
+   than injecting into it. Neighbouring cells are whatever the distribution produced, not
+   arranged for tension.
+4. **No stakes.** Opening is free and unlimited, reserves nothing and buys nothing. The
+   UI says so beside every reel.
+
+Supporting this, the site omits loot-box mechanics: no countdown timers, no streak
+bonuses, no artificial scarcity, and no paid re-roll with a downside (see
+[Trade Up](#trade-up)). `impact.html` also declines to publish per-box water or CO₂
+figures because the conversion factors for garment reuse vary too widely to state one
+honestly — and says so out loud rather than quietly omitting it.
+
+> **History note.** The first version of this was a spinning prize wheel whose arc angles
+> were generated from the same table. It was replaced by the reel because the reel shows
+> *more* information for the same honesty guarantee — you can count discrete cells, which
+> is harder to fudge than judging the angle of a thin slice. `about.html` records the
+> change in its timeline.
 
 ### Odds model
 
@@ -155,73 +175,11 @@ guarantee, the console says so.
 Trade Up is offered post-delivery, on the order page, once the customer has handled the
 real garment — deliberately not from an animation before the box ships.
 
-### The reveal reel
-
-A horizontal case-opening animation (`assets/js/reel.js`) — a 64-cell strip scrolls past a
-centre marker, decelerates over 5.2s, and stops on your result. Available as an alternative
-to the wheel on `box.html` via a toggle (the choice persists), and it is the primary reveal
-on `cards.html`.
-
-![The reveal reel](docs/screenshots/60-card-reel.png)
-
-This pattern is borrowed from game case-openers, which are built to manipulate. This one is
-built not to, and the two specific tricks it refuses are named on screen:
-
-1. **The strip *is* the odds table.** Cell counts are apportioned from the published
-   percentages by largest-remainder, so on a Collector Box the strip holds exactly 3 Vintage
-   Holo cells (4%), 9 Holo Rare (14%), 15 Full Art (24%). The UI prints the composition so
-   you can count them. **No salting the strip with extra rares** to make it feel richer.
-2. **No manufactured near-miss.** Case-openers habitually decelerate so the marker drifts to
-   the very edge of your cell with a jackpot sitting just beyond, faking an "so close!"
-   that has no basis in the draw. This lands **dead centre, every time** — there is a test
-   asserting the drift is under 1.5px (it measures 0.00px).
-
-Plus the same rules as the wheel: outcome drawn *before* the animation starts, neighbours of
-the winning cell are whatever the distribution put there rather than arranged for tension,
-and the winner is placed by **swapping** cells so the published composition is preserved
-exactly rather than injected into.
-
-The reel is product-line agnostic — `reelSource()` resolves either rarity ladder, so the
-clothing and card verticals share one implementation.
-
-### Card Vault — the collectibles line
-
-A second product line on the same honest-odds model: blind boxes of authentic secondhand
-trading cards, bought as bulk lots and graded by hand. Own rarity ladder, own odds tables,
-same 100%-sum assertion (`assets/js/card-data.js`).
-
-| Outcome | Bulk $12 | Collector $28 | Vault $55 |
-|---|---|---|---|
-| Vintage Holo | 1% | 4% | 14% |
-| Holo Rare | 6% | 14% | 30% |
-| Full Art | 13% | 24% | 36% |
-| Uncommon | 30% | 33% | 20% |
-| Common | 50% | 25% | never |
-| **Feature slots** | 1 | 2 | 2 |
-| **Chance ≥1 beats a Common** | 50% | 93.8% | 100% |
-
-60 card designs generated by `tools/generate-cards.py` (~30 KB total).
-
-![Card designs](docs/card-contact-sheet.png)
-
-> **Artwork and IP.** Every sprite in `assets/cards/` is an original generic design — frame,
-> art window, abstract elemental sigil, holo treatment, stat pips. **No existing franchise's
-> characters, logos, typefaces, layouts or trade dress are reproduced, and none should be
-> added.** Reselling authentic secondhand cards is lawful under first-sale doctrine and real
-> inventory can be described factually in copy; borrowing another company's art for *our own*
-> site assets is a different thing entirely. `tools/generate-cards.py` and
-> `assets/js/card-data.js` both carry this note at the top so it survives future edits.
->
-> Randomised card products also attract more regulatory attention than clothing. `cards.html`
-> states an 18+ restriction and the one-box-per-month subscription cap. **Get actual legal
-> advice before selling this for real** — some jurisdictions restrict paid randomised
-> products, and physical and digital are treated differently.
-
 ### Item lookbook — 200 pixel-art garments
 
 "Vintage Rare" is an abstraction until you can see one. `lookbook.html` shows all 200
 catalogue garments as pixel art, tagged with the rarity band they belong to, filterable by
-tag and by category. Landing on an outcome in the wheel also surfaces a real catalogue
+tag and by category. Landing on an outcome in the reel also surfaces a real catalogue
 piece, linked through to the filtered lookbook.
 
 ![Item lookbook](docs/screenshots/50-lookbook.png)
@@ -287,15 +245,15 @@ Earthy foundation with arcade accents, per the brief's "earthy but fun" directio
   image assets to load.
 - **Greens** — `--forest` `#1e4430`, `--moss` `#3c7a4e`, `--sage` `#a9c6a2`.
 - **Accents** — `--sun` `#f4b429`, `--berry` `#e4572e`, `--grape` `#7b5ea7`, `--sky` `#3e9bc0`.
-  These double as the rarity ramp, so a colour means the same thing on the wheel, in a
+  These double as the rarity ramp, so a colour means the same thing on a reel cell, in a
   chip, in a legend and in a table.
 - **Type** — a serif display stack (Iowan/Palatino/Georgia, with Liberation and DejaVu
   fallbacks for Linux) against a system sans for body copy. No webfonts, so no network
   dependency and no layout shift.
 - **Motion** — overshoot easing (`--ease-bounce`) on buttons and cards, sticker-style
   offset shadows, torn-paper section dividers via SVG masks, a confetti burst on a rare
-  hit. All of it collapses under `prefers-reduced-motion: reduce`, and the wheel resolves
-  instantly rather than spinning.
+  hit. All of it collapses under `prefers-reduced-motion: reduce`, and the reel resolves
+  instantly rather than scrolling.
 
 All illustration is inline SVG (hero box, logo, icons, stars, arrows). Glyphs that are
 missing from some font stacks — `★ ▾ →` — are drawn as SVG rather than typed, so nothing
@@ -305,8 +263,8 @@ renders as tofu.
 
 Skip link; visible focus rings; semantic landmarks and heading order; `aria-current` on
 the active nav item; the FAQ uses native `<details>`/`<summary>`; the odds modal traps
-focus, closes on <kbd>Esc</kbd> and restores focus to its trigger; the wheel is a real
-`<button>` with results announced through `role="status"`; the canvas carries an
+focus, closes on <kbd>Esc</kbd> and restores focus to its trigger; the reel is opened by a
+real `<button>` with results announced through `role="status"`; the strip carries an
 `aria-label` listing the full odds. Every page is readable and navigable with JavaScript
 disabled — the odds appear as static text and the complete odds table lives in
 `faq.html#odds`.
@@ -316,26 +274,26 @@ disabled — the odds appear as static text and the complete odds table lives in
 ## Verification
 
 `tests/interaction-test.html` drives the real pages in same-origin iframes and asserts
-100 behaviours. Run it against a served copy:
+86 behaviours. Run it against a served copy:
 
 ```bash
 python3 -m http.server 8099 &
 chrome --headless --no-sandbox --force-prefers-reduced-motion \
-  --virtual-time-budget=45000 --dump-dom \
+  --virtual-time-budget=150000 --dump-dom \
   "http://localhost:8099/tests/interaction-test.html" | grep -E 'PASS|FAIL|TOTAL'
 ```
 
-`--force-prefers-reduced-motion` makes spins resolve synchronously, which keeps the
+`--force-prefers-reduced-motion` makes opens resolve synchronously, which keeps the
 assertions fast and deterministic.
 
 It covers, among other things:
 
-- the wheel paints, and **every segment arc angle equals its published percentage**
-  (the load-bearing claim of the whole design)
-- segment arcs sum to exactly 360°
-- a spin produces a result, states its probability, and updates the running tally
+- **every cell count equals its published proportion** (the load-bearing claim of the
+  whole design), and the strip lands **dead centre** with 0.00px drift
+- composition is preserved across opens (winner swapped, not injected)
+- an open produces a result, states its probability, and updates the running tally
 - switching tier rebinds price, odds, standout chance, slot diagram, guarantee, features,
-  wheel geometry and the add-to-cart button
+  reel composition and the add-to-cart button
 - the odds modal opens, sums to 100%, discloses never-occurring outcomes, and closes
 - cart add / quantity / totals / diverted-weight display
 - `?tier=` deep links
@@ -380,7 +338,7 @@ the page says so instead of implying the figures are current.
 
 ## Renaming the brand
 
-"Second Spin" was chosen because it reads as both the wheel mechanic and a garment's
+"Second Spin" was chosen because it reads as both a second go and a garment's
 second life. To rebrand:
 
 ```bash
@@ -392,7 +350,7 @@ sed -i 's/secondspin\.example/yourbrand.example/g' *.html
 sed -i "s/secondspin\.cart\.v1/yourbrand.cart.v1/" assets/js/app.js
 ```
 
-The logo is an inline SVG in the header and footer of each page — a five-segment wheel in
+The logo is an inline SVG in the header and footer of each page — a five-segment disc in
 the rarity colours with a leaf at the hub.
 
 ---
@@ -405,17 +363,12 @@ Captures live in [`docs/screenshots/`](docs/screenshots) (desktop 1360px, mobile
 
 ![Homepage hero](docs/screenshots/01-home-hero.png)
 
-### The wheel
+### The reveal
 
-Segment sizes are generated from the odds table, so the 6% Vintage Rare slice really is
-a 6% sliver and the 35% Everyday Staple wedge dominates.
+![Reveal reel on the product page](docs/screenshots/07-box-premium.png)
 
-![The odds wheel](docs/screenshots/20-wheel-section.png)
-
-On the Premium tier the wheel has only four segments — the Everyday Staple wedge is
-physically absent, which is what "feature slots never land on a basic" means.
-
-![Premium product page](docs/screenshots/07-box-premium.png)
+On the Premium tier the strip contains **no Everyday cells at all** — which is what
+"feature slots never land on a basic" means, made visible rather than asserted.
 
 ### Trade Up
 

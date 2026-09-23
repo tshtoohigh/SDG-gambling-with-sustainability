@@ -24,7 +24,6 @@ const ICONS = {
   store: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16v11H4zM3 9l2-5h14l2 5"/><path d="M10 20v-6h4v6"/></svg>`,
   scale: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M7 20h10M6 8h12M6 8 3 14h6zM18 8l-3 6h6z"/></svg>`,
   question: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.3M12 17h.01"/></svg>`,
-  wheel: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg>`,
   tshirt: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3 4 5.5l1.6 4L8 9v11h8V9l2.4.5 1.6-4L15 3a3 3 0 0 1-6 0z"/></svg>`,
   warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 21 19H3zM12 9.5V14M12 16.8h.01"/></svg>`,
 };
@@ -237,10 +236,11 @@ const OddsModal = (() => {
       <div class="sim-note" style="margin-top:var(--sp-5)">
         ${icon('info')}
         <span>
-          <b>How we keep this honest.</b> The wheel is a visualiser, not the draw.
-          Segment angles are generated directly from the table above, so a 6% outcome
-          occupies exactly 6% of the wheel &mdash; no shrunken slices, no near-miss
-          weighting, no "spin again" upsell. Spinning it costs nothing and reserves nothing.
+          <b>How we keep this honest.</b> The reel is a visualiser, not the draw.
+          Cell counts are generated directly from the table above, so a 6% outcome
+          occupies exactly 4 of the strip's 64 cells &mdash; no padding with extra rares,
+          no near-miss drift, no "open again" upsell. Opening it costs nothing and
+          reserves nothing.
           Your actual box is assembled by a human sorter against these same ratios, and
           we publish the realised monthly hit-rate on our
           <a href="impact.html#receipts">Impact page</a>.

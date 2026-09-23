@@ -297,7 +297,7 @@ a:hover { color: var(--moss); }
 
 .dot { width: 0.7em; height: 0.7em; border-radius: 50%; background: currentColor; flex: none; }
 
-/* Rarity chips share colour with the wheel segments */
+/* Rarity chips share colour with the reel cells */
 .chip {
   display: inline-flex; align-items: center; gap: var(--sp-2);
   padding: 0.3em 0.8em;
@@ -461,68 +461,15 @@ a:hover { color: var(--moss); }
 }
 
 /* --------------------------------------------------------------------------
-   10. The wheel
+   10. Reveal result panel + confetti
+   Shared by the reel's result area.
    -------------------------------------------------------------------------- */
-.wheel-block {
-  display: grid; gap: var(--sp-6);
-  grid-template-columns: minmax(280px, 1fr) minmax(260px, 0.85fr);
-  align-items: center;
-}
-@media (max-width: 860px) { .wheel-block { grid-template-columns: 1fr; } }
-
-.wheel-stage {
-  position: relative;
-  width: 100%; max-width: 420px;
-  margin-inline: auto;
-  aspect-ratio: 1;
-  display: grid; place-items: center;
-}
-.wheel-stage__canvas { width: 100%; height: 100%; border-radius: 50%; }
-.wheel-stage__pointer {
-  position: absolute; top: -6px; left: 50%;
-  transform: translateX(-50%);
-  width: 34px; height: 44px;
-  z-index: 3;
-  filter: drop-shadow(0 3px 0 rgba(22,36,27,0.35));
-}
-.wheel-stage__hub {
-  position: absolute; z-index: 2;
-  width: 24%; aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--paper);
-  border: 3px solid var(--ink);
-  display: grid; place-items: center;
-  text-align: center;
-  box-shadow: var(--sh-md);
-}
-.wheel-stage__hub svg { width: 46%; }
-.wheel-stage.is-spinning .wheel-stage__hub { animation: hub-wobble 700ms var(--ease-in-out) infinite; }
-@keyframes hub-wobble { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
-
-.wheel-controls { display: flex; flex-direction: column; gap: var(--sp-3); align-items: flex-start; }
-
-.wheel-result {
-  border: 2px dashed var(--paper-line);
-  border-radius: var(--r-lg);
-  padding: var(--sp-5);
-  background: var(--paper-2);
-  min-height: 170px;
-  display: flex; flex-direction: column; justify-content: center;
-}
-.wheel-result.is-hit {
-  border-style: solid;
-  border-color: var(--ink);
-  background: var(--paper);
-  box-shadow: var(--sticker-sm);
-  animation: pop var(--dur-slow) var(--ease-bounce);
-}
-@keyframes pop { 0% { transform: scale(0.94); } 60% { transform: scale(1.02); } 100% { transform: scale(1); } }
-.wheel-result__rarity {
+.reveal-result__rarity {
   font-family: var(--font-display);
   font-size: var(--t-lg); font-weight: 700;
   margin: var(--sp-2) 0;
 }
-.wheel-result__example { font-size: var(--t-sm); color: var(--ink-soft); }
+.reveal-result__example { font-size: var(--t-sm); color: var(--ink-soft); }
 
 .sim-note {
   display: flex; gap: var(--sp-3); align-items: flex-start;
@@ -536,7 +483,7 @@ a:hover { color: var(--moss); }
 .sim-note svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
 
 /* Confetti burst on a rare hit */
-.confetti { position: absolute; inset: 0; overflow: visible; pointer-events: none; z-index: 4; }
+.confetti { position: absolute; inset: 0; overflow: visible; pointer-events: none; z-index: 5; }
 .confetti span {
   position: absolute; top: 50%; left: 50%;
   width: 9px; height: 14px; border-radius: 2px;
@@ -547,6 +494,8 @@ a:hover { color: var(--moss); }
   0%   { opacity: 1; transform: translate(-50%, -50%) rotate(0deg) scale(0.6); }
   100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1); }
 }
+
+@keyframes pop { 0% { transform: scale(0.94); } 60% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
 /* --------------------------------------------------------------------------
    11. Odds table (transparency UI)
