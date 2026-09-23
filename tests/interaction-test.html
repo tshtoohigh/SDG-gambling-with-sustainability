@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Second Spin — interaction test harness</title></head>
+<body>
+<h1>Results</h1>
+<pre id="out">running…</pre>
+<iframe id="frame" src="" style="width:1280px;height:900px;border:0"></iframe>
+
+<script>
+const lines = [];
+const log = (ok, msg) => lines.push(`${ok ? 'PASS' : 'FAIL'}  ${msg}`);
+const out = () => { document.getElementById('out').textContent = lines.join('\n'); };
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function loadFrame(url) {
+  return new Promise((resolve) => {
+    const f = document.getElementById('frame');
+    f.onload = () => setTimeout(() => resolve(f.contentWindow, f.contentDocument), 300);
+    f.src = url;
+  });
+}
+
+/** Does the canvas contain actual drawn pixels? */
+function canvasPainted(canvas) {
+  const ctx = canvas.getContext('2d');
+  const { width: w, height: h } = canvas;
+  if (!w || !h) return false;
+  const d = ctx.getImageData(0, 0, w, h).data;
+  let painted = 0;
+  for (let i = 3; i < d.length; i += 4 * 97) if (d[i] > 0) painted++;
+  return painted > 50;
+}
+
+/** Count distinct strong colours on the wheel face (one per segment). */
+function distinctHues(canvas) {
+  const ctx = canvas.getContext('2d');
+  const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const seen = new Set();
+  for (let i = 0; i < d.length; i += 4 * 31) {
+    if (d[i + 3] < 200) continue;
+    seen.add(`${d[i] >> 5},${d[i + 1] >> 5},${d[i + 2] >> 5}`);
+  }
+  return seen.size;
+}
+
+async function run() {
+  /* ---------------- 1. box.html: wheel draws, spin resolves ---------------- */
+  let win = await loadFrame('/box.html');
+  let doc = win.document;
+
+  const canvas = doc.querySelector('[data-wheel-canvas]');
+  log(!!canvas, 'box.html: wheel canvas exists');
+  log(canvas && canvas.width > 200, `box.html: canvas sized for DPR (${canvas && canvas.width}px backing store)`);
+  log(canvas && canvasPainted(canvas), 'box.html: wheel actually painted pixels');
+  log(canvas && distinctHues(canvas) >= 5, `box.html: >=5 distinct segment colours drawn (${canvas && distinctHues(canvas)})`);
+
+  const api = win.SecondSpin;
+  log(!!api, 'box.html: window.SecondSpin exposed');
+  const wheel = api && api.wheels[0];
+  log(wheel && wheel.segments.length === 5, `box.html: classic wheel has 5 segments (${wheel && wheel.segments.length})`);
+
+  /* Geometry honesty: does each arc match its published percentage? */
+  if (wheel) {
+    const bad = wheel.segments.filter(s => {
+      const pctFromArc = (s.arc / (Math.PI * 2)) * 100;
+      return Math.abs(pctFromArc - s.pct) > 0.001;
+    });
+    log(bad.length === 0, `box.html: every arc angle equals its published % (mismatches: ${bad.length})`);
+    const total = wheel.segments.reduce((a, s) => a + s.arc, 0);
+    log(Math.abs(total - Math.PI * 2) < 1e-9, 'box.html: segment arcs fill exactly 360°');
+  }
+
+  /* Spin (reduced motion is forced, so it resolves synchronously) */
+  const spinBtn = doc.querySelector('[data-wheel-spin]');
+  spinBtn.click();
+  await sleep(400);
+  const result = doc.querySelector('[data-wheel-result]');
+  log(result.classList.contains('is-hit'), 'box.html: spin produced a result');
+  log(/chance/.test(result.textContent), 'box.html: result states the % chance of the outcome');
+  const tally = doc.querySelector('[data-wheel-tally]');
+  log(/Yours \/ ours|observed/i.test(tally.textContent), 'box.html: running tally rendered after spin');
+
+  /* ---------------- 2. tier switching rebinds everything ---------------- */
+  doc.querySelector('[data-tier-value="premium"]').click();
+  await sleep(300);
+  const priceEl = doc.querySelector('[data-tier-bind="price"]');
+  log(priceEl.textContent.trim() === '$45', `box.html: switching to Premium updates price ($45) -> got ${priceEl.textContent.trim()}`);
+  log(doc.querySelector('[data-tier-bind="standout"]').textContent.trim() === '100%',
+      'box.html: Premium standout chance shows 100%');
+  log(api.wheels[0].segments.length === 4,
+      `box.html: Premium wheel drops the Everyday segment (${api.wheels[0].segments.length} segments)`);
+  const addBtn = doc.querySelector('[data-product] [data-add-to-cart]');
+  log(addBtn.dataset.addToCart === 'premium', 'box.html: add-to-cart button repointed to premium');
+  log(/Premium/.test(addBtn.textContent), 'box.html: add-to-cart label updated');
+  const slots = doc.querySelectorAll('[data-slot-grid] .slot');
+  log(slots.length === 6, `box.html: slot diagram shows 6 slots for Premium (${slots.length})`);
+  log(doc.querySelectorAll('[data-slot-grid] .slot--feature').length === 2,
+      'box.html: 2 of them are feature slots');
+
+  /* ---------------- 3. odds modal ---------------- */
+  doc.querySelector('[data-odds-modal]').click();
+  await sleep(300);
+  const modal = doc.querySelector('.modal.is-open');
+  log(!!modal, 'box.html: odds modal opens');
+  if (modal) {
+    const cells = Array.from(modal.querySelectorAll('tbody tr td:last-child'))
+      .map(td => parseFloat(td.textContent));
+    const sum = cells.reduce((a, b) => a + b, 0);
+    log(Math.abs(sum - 100) < 0.01, `box.html: modal odds sum to 100% (got ${sum}%)`);
+    log(/never/i.test(modal.textContent), 'box.html: modal discloses outcomes that never appear');
+    modal.querySelector('[data-close]').click();
+    await sleep(200);
+    log(!doc.querySelector('.modal.is-open'), 'box.html: modal closes');
+  }
+
+  /* ---------------- 4. cart ---------------- */
+  doc.querySelector('[data-product] [data-add-to-cart]').click();
+  await sleep(300);
+  const badge = doc.querySelector('[data-cart-count]');
+  log(badge.textContent === '1', `box.html: cart badge shows 1 (${badge.textContent})`);
+  log(doc.querySelector('[data-cart-drawer]').classList.contains('is-open'), 'box.html: cart drawer opened');
+  log(/\$45/.test(doc.querySelector('[data-cart-total]').textContent), 'box.html: cart total is $45');
+  log(/6\.4 lbs/.test(doc.querySelector('[data-cart-lbs]').textContent),
+      `box.html: cart shows lbs rescued (${doc.querySelector('[data-cart-lbs]').textContent})`);
+  doc.querySelector('[data-qty-up]').click();
+  await sleep(250);
+  log(/\$90/.test(doc.querySelector('[data-cart-total]').textContent),
+      `box.html: qty increment doubles total to $90 (${doc.querySelector('[data-cart-total]').textContent})`);
+
+  /* ---------------- 5. shop.html tier cards ---------------- */
+  win = await loadFrame('/shop.html');
+  doc = win.document;
+  const bars = doc.querySelectorAll('[data-odds-bar]');
+  log(bars.length === 3, `shop.html: 3 tier odds bars rendered (${bars.length})`);
+  let widthsOk = true;
+  bars.forEach((bar) => {
+    const total = Array.from(bar.children).reduce((a, s) => a + parseFloat(s.style.width), 0);
+    if (Math.abs(total - 100) > 0.01) widthsOk = false;
+  });
+  log(widthsOk, 'shop.html: each odds bar segment widths total exactly 100%');
+  const rings = doc.querySelectorAll('[data-sustain-ring]');
+  const ringVals = Array.from(rings).map(r => r.style.getPropertyValue('--pct').trim());
+  log(ringVals.join(',') === '82,88,94', `shop.html: sustainability rings set to 82,88,94 (${ringVals.join(',')})`);
+
+  /* ---------------- 6. deep link ---------------- */
+  win = await loadFrame('/box.html?tier=starter');
+  doc = win.document;
+  await sleep(300);
+  log(doc.querySelector('[data-tier-bind="price"]').textContent.trim() === '$10',
+      `box.html?tier=starter: deep link applies Starter pricing (${doc.querySelector('[data-tier-bind="price"]').textContent.trim()})`);
+  log(win.SecondSpin.wheels[0].tier.id === 'starter', 'box.html?tier=starter: wheel switched to starter');
+
+  /* ---------------- 7. index.html counters + marquee ---------------- */
+  win = await loadFrame('/index.html');
+  doc = win.document;
+  await sleep(500);
+  const lbs = doc.querySelector('[data-live-lbs]').textContent.replace(/,/g, '');
+  log(Number(lbs) >= 12450, `index.html: impact counter reached 12,450 (${lbs})`);
+  log(doc.querySelectorAll('.marquee__item').length === 16,
+      `index.html: marquee duplicated for seamless loop (${doc.querySelectorAll('.marquee__item').length} items)`);
+  log(doc.querySelectorAll('.reveal.is-in').length > 0,
+      `index.html: scroll-reveal elements activated (${doc.querySelectorAll('.reveal.is-in').length})`);
+
+  /* ---------------- 8. newsletter validation ---------------- */
+  const form = doc.querySelector('[data-newsletter]');
+  const email = form.querySelector('input[type="email"]');
+  email.value = 'nope';
+  form.dispatchEvent(new win.Event('submit', { cancelable: true, bubbles: true }));
+  await sleep(150);
+  log(form.querySelector('[data-form-msg]').dataset.state === 'err', 'index.html: invalid email rejected');
+  email.value = 'a@b.co';
+  form.dispatchEvent(new win.Event('submit', { cancelable: true, bubbles: true }));
+  await sleep(150);
+  log(form.querySelector('[data-form-msg]').dataset.state === 'ok', 'index.html: valid email accepted');
+
+  const failed = lines.filter(l => l.startsWith('FAIL')).length;
+  lines.push('');
+  lines.push(`TOTAL: ${lines.filter(l => l.startsWith('PASS')).length} passed, ${failed} failed`);
+  out();
+}
+
+run().catch(e => { lines.push('HARNESS ERROR: ' + e.message + '\n' + e.stack); out(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop thrift blind boxes — Starter, Classic & Premium | Second Spin</title>
+<meta name="description" content="Three tiers of rescued secondhand clothing boxes, each with a published odds table drawn to scale. Starter $10, Classic $22, Premium $45.">
+<meta name="theme-color" content="#1e4430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19' fill='%231e4430'/%3E%3Cpath d='M20 20 L20 5 A15 15 0 0 1 34.3 15.4 Z' fill='%23f4b429'/%3E%3Cpath d='M20 20 L34.3 15.4 A15 15 0 0 1 20 35 Z' fill='%23e4572e'/%3E%3Cpath d='M20 20 L20 35 A15 15 0 0 1 5.7 15.4 Z' fill='%233e9bc0'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ============================ HEADER ============================ -->
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="index.html">
+      <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#16241b"/>
+        <path d="M20 20 L20 4 A16 16 0 0 1 35.2 15.1 Z" fill="#7b5ea7"/>
+        <path d="M20 20 L35.2 15.1 A16 16 0 0 1 29.4 32.9 Z" fill="#f4b429"/>
+        <path d="M20 20 L29.4 32.9 A16 16 0 0 1 10.6 32.9 Z" fill="#e4572e"/>
+        <path d="M20 20 L10.6 32.9 A16 16 0 0 1 4.8 15.1 Z" fill="#3e9bc0"/>
+        <path d="M20 20 L4.8 15.1 A16 16 0 0 1 20 4 Z" fill="#3c7a4e"/>
+        <circle cx="20" cy="20" r="7.6" fill="#f7f2e6" stroke="#16241b" stroke-width="2"/>
+        <path d="M16.8 23c0-3.3 2.2-5.7 6.8-6.1.4 4.5-2.1 6.5-5.3 6.5h-1.5z" fill="#3c7a4e"/>
+      </svg>
+      <span>Second Spin</span>
+    </a>
+
+    <nav class="nav" id="site-nav" data-nav aria-label="Main">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="shop.html" aria-current="page">Shop boxes</a></li>
+        <li><a class="nav__link" href="impact.html">Our impact</a></li>
+        <li><a class="nav__link" href="about.html">Our story</a></li>
+        <li><a class="nav__link" href="faq.html">FAQ</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="btn btn--ghost btn--sm cart-btn" type="button" data-cart-open aria-label="Open your box bag">
+        <span data-icon="cart" style="width:20px;display:block"></span>
+        <span class="cart-btn__count" data-cart-count>0</span>
+      </button>
+      <a class="btn btn--sun btn--sm header-cta" href="shop.html">Shop boxes</a>
+      <button class="btn btn--ghost btn--sm nav-toggle" type="button" data-nav-toggle
+              aria-expanded="false" aria-controls="site-nav" aria-label="Toggle menu"></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============================ PAGE HEAD ============================ -->
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">Shop boxes</p>
+      <h1>Three tiers. One published odds table each.</h1>
+      <p class="lead">
+        Same sourcing, same sorters, same paper wrapping. What changes between tiers is the
+        number of <b>feature slots</b> and how good your chances are on each one. Spin the wheel
+        for any tier below before you decide.
+      </p>
+      <div class="cluster" style="margin-top:var(--sp-5)">
+        <span class="pill pill--sage"><span class="dot" style="background:var(--moss)"></span> All boxes 100% secondhand</span>
+        <span class="pill"><span class="dot" style="background:var(--berry)"></span> Free swap on Classic &amp; Premium</span>
+        <span class="pill"><span class="dot" style="background:var(--sky)"></span> Ships Tuesdays &amp; Fridays</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= WHEEL + TIER SWITCH ========================= -->
+  <section class="section section--tight" aria-labelledby="preview-title">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow"><span data-icon="wheel" style="width:16px"></span> Odds preview</p>
+        <h2 id="preview-title">Try any tier's wheel</h2>
+        <p class="lead">
+          The wheel is drawn from the published odds table, to scale. Switch tiers and watch the
+          slices change &mdash; that's the only thing your money changes.
+        </p>
+      </div>
+
+      <div class="wheel-block" data-wheel-scope data-wheel-tier="classic">
+        <div class="wheel-stage" data-wheel-stage>
+          <canvas class="wheel-stage__canvas" data-wheel-canvas></canvas>
+          <svg class="wheel-stage__pointer" data-wheel-pointer viewBox="0 0 34 44" aria-hidden="true">
+            <path d="M17 42 L3 10 A16 16 0 0 1 31 10 Z" fill="#f7f2e6" stroke="#16241b" stroke-width="3" stroke-linejoin="round"/>
+            <circle cx="17" cy="13" r="4.5" fill="#e4572e" stroke="#16241b" stroke-width="2.5"/>
+          </svg>
+          <div class="wheel-stage__hub" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16241b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 20c0-8 5-14 16-15 1 11-5 16-13 16H4z"/><path d="M4 20c3-5 7-8 12-9"/>
+            </svg>
+          </div>
+          <div class="confetti" data-confetti aria-hidden="true"></div>
+        </div>
+
+        <div class="wheel-controls">
+          <div class="tier-switch" data-tier-switch role="group" aria-label="Choose a tier to preview">
+            <button class="tier-switch__btn" type="button" data-tier-value="starter" aria-pressed="false">Starter $10</button>
+            <button class="tier-switch__btn" type="button" data-tier-value="classic" aria-pressed="true">Classic $22</button>
+            <button class="tier-switch__btn" type="button" data-tier-value="premium" aria-pressed="false">Premium $45</button>
+          </div>
+
+          <p class="pill pill--sage">Showing: <b data-tier-bind="name">Classic Box</b></p>
+          <div class="wheel-result" data-wheel-result role="status"></div>
+
+          <div class="cluster">
+            <button class="btn btn--berry btn--lg" type="button" data-wheel-spin>Spin the wheel</button>
+            <button class="link-btn" type="button" data-odds-modal="classic" data-product-odds>See the full odds breakdown</button>
+          </div>
+
+          <p class="sim-note">
+            <span data-icon="info"></span>
+            <span>
+              <b>Free, unlimited, and not the real draw.</b> Spinning reserves nothing and costs
+              nothing. Chance that at least one feature slot in this box lands on something other
+              than a basic: <b data-tier-bind="standout">51.6%</b>.
+            </span>
+          </p>
+          <div data-wheel-tally style="width:100%"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="edge-torn" style="background:var(--paper-2)"></div>
+
+  <!-- ============================ TIER CARDS ============================ -->
+  <section class="section section--paper2" aria-labelledby="tier-cards-title">
+    <div class="container">
+      <div class="section-head center">
+        <p class="eyebrow">Pick one</p>
+        <h2 id="tier-cards-title">The three boxes</h2>
+      </div>
+
+      <div class="tiers">
+
+        <!-- STARTER -->
+        <article class="tier reveal" data-tier-widgets="starter">
+          <div class="tier__top tier__top--starter">
+            <h3 class="tier__name">Starter Box</h3>
+            <div class="tier__price"><b>$10</b><span>+ $4 ground shipping</span></div>
+            <p class="tier__tagline">Dip a toe in. Smallest spend, smallest odds, same rescue.</p>
+          </div>
+
+          <div class="tier__body">
+            <div>
+              <p class="eyebrow" style="margin-bottom:var(--sp-2)">Feature slot odds</p>
+              <div class="odds-bar" data-odds-bar></div>
+              <div class="odds-legend" data-odds-legend style="margin-top:var(--sp-3)"></div>
+              <p class="muted" style="margin-top:var(--sp-3);font-size:var(--t-xs)" data-odds-text>
+                Vintage Rare 2% · Designer Label 5% · Statement Piece 13% · Seasonal Pick 25% · Everyday Staple 55%
+              </p>
+              <button class="link-btn" type="button" data-odds-modal="starter">Full odds breakdown</button>
+            </div>
+
+            <ul class="tier__feature-list">
+              <li><span data-icon="check"></span><span>5 garments, 1 feature slot</span></li>
+              <li><span data-icon="check"></span><span>Sorted, washed and steamed before packing</span></li>
+              <li><span data-icon="check"></span><span>Size range honoured (you pick 2 sizes)</span></li>
+              <li><span data-icon="check"></span><span>Carbon-light ground shipping only</span></li>
+            </ul>
+
+            <div class="sustain">
+              <div class="sustain__ring" data-sustain-ring><span class="sustain__num">82</span></div>
+              <p class="sustain__text">
+                <b>Sustainability score 82 &middot; B+</b>
+                ~4.2 lbs kept in circulation. <a href="impact.html#score">How we score</a>
+              </p>
+            </div>
+
+            <p class="muted" style="margin:0;font-size:var(--t-xs)">
+              No condition guarantee on this tier &mdash; it's our most affordable rescue box.
+              Chance at least one feature slot beats a basic: <b>45%</b>.
+            </p>
+          </div>
+
+          <div class="tier__foot">
+            <button class="btn btn--block" type="button" data-add-to-cart="starter">Add Starter Box &mdash; $10</button>
+            <a class="btn btn--ghost btn--sm btn--block" href="box.html?tier=starter">See full details</a>
+          </div>
+        </article>
+
+        <!-- CLASSIC -->
+        <article class="tier tier--featured reveal" data-tier-widgets="classic">
+          <span class="tier__ribbon">Most popular</span>
+          <div class="tier__top tier__top--classic">
+            <h3 class="tier__name">Classic Box</h3>
+            <div class="tier__price"><b>$22</b><span>free shipping</span></div>
+            <p class="tier__tagline">The balanced one. Two feature slots, real chance of a standout.</p>
+          </div>
+
+          <div class="tier__body">
+            <div>
+              <p class="eyebrow" style="margin-bottom:var(--sp-2)">Feature slot odds</p>
+              <div class="odds-bar" data-odds-bar></div>
+              <div class="odds-legend" data-odds-legend style="margin-top:var(--sp-3)"></div>
+              <p class="muted" style="margin-top:var(--sp-3);font-size:var(--t-xs)" data-odds-text>
+                Vintage Rare 6% · Designer Label 12% · Statement Piece 22% · Seasonal Pick 25% · Everyday Staple 35%
+              </p>
+              <button class="link-btn" type="button" data-odds-modal="classic">Full odds breakdown</button>
+            </div>
+
+            <ul class="tier__feature-list">
+              <li><span data-icon="check"></span><span>6 garments, 2 feature slots</span></li>
+              <li><span data-icon="check"></span><span>Sorted, washed and steamed before packing</span></li>
+              <li><span data-icon="check"></span><span>Size range honoured (you pick 2 sizes)</span></li>
+              <li><span data-icon="check"></span><span>Style note card naming every piece's origin</span></li>
+              <li><span data-icon="check"></span><span>One free swap if something doesn't fit</span></li>
+            </ul>
+
+            <div class="sustain">
+              <div class="sustain__ring" data-sustain-ring><span class="sustain__num">88</span></div>
+              <p class="sustain__text">
+                <b>Sustainability score 88 &middot; A&minus;</b>
+                ~5.6 lbs kept in circulation. <a href="impact.html#score">How we score</a>
+              </p>
+            </div>
+
+            <p class="muted" style="margin:0;font-size:var(--t-xs)">
+              Guaranteed: at least one piece per box is graded Excellent condition.
+              Chance at least one feature slot beats a basic: <b>87.8%</b>.
+            </p>
+          </div>
+
+          <div class="tier__foot">
+            <button class="btn btn--berry btn--block" type="button" data-add-to-cart="classic">Add Classic Box &mdash; $22</button>
+            <a class="btn btn--ghost btn--sm btn--block" href="box.html?tier=classic">See full details</a>
+          </div>
+        </article>
+
+        <!-- PREMIUM -->
+        <article class="tier reveal" data-tier-widgets="premium">
+          <span class="tier__ribbon" style="background:var(--grape)">Best odds</span>
+          <div class="tier__top tier__top--premium">
+            <h3 class="tier__name">Premium Box</h3>
+            <div class="tier__price"><b>$45</b><span>free shipping + returns</span></div>
+            <p class="tier__tagline">Best hunting ground. Feature slots never land on a basic.</p>
+          </div>
+
+          <div class="tier__body">
+            <div>
+              <p class="eyebrow" style="margin-bottom:var(--sp-2)">Feature slot odds</p>
+              <div class="odds-bar" data-odds-bar></div>
+              <div class="odds-legend" data-odds-legend style="margin-top:var(--sp-3)"></div>
+              <p class="muted" style="margin-top:var(--sp-3);font-size:var(--t-xs)" data-odds-text>
+                Vintage Rare 20% · Designer Label 30% · Statement Piece 35% · Seasonal Pick 15%
+              </p>
+              <button class="link-btn" type="button" data-odds-modal="premium">Full odds breakdown</button>
+            </div>
+
+            <ul class="tier__feature-list">
+              <li><span data-icon="check"></span><span>6 garments, 2 feature slots</span></li>
+              <li><span data-icon="check"></span><span>Feature slots never resolve to Everyday Staple</span></li>
+              <li><span data-icon="check"></span><span>Every piece graded Very Good or better</span></li>
+              <li><span data-icon="check"></span><span>Hand-picked by a senior sorter, not a line packer</span></li>
+              <li><span data-icon="check"></span><span>Two free swaps + prepaid return label</span></li>
+            </ul>
+
+            <div class="sustain">
+              <div class="sustain__ring" data-sustain-ring><span class="sustain__num">94</span></div>
+              <p class="sustain__text">
+                <b>Sustainability score 94 &middot; A</b>
+                ~6.4 lbs kept in circulation. <a href="impact.html#score">How we score</a>
+              </p>
+            </div>
+
+            <p class="muted" style="margin:0;font-size:var(--t-xs)">
+              Guaranteed: both feature slots are Vintage, Designer, Statement or Seasonal &mdash;
+              never a basic. Chance at least one feature slot beats a basic: <b>100%</b>.
+            </p>
+          </div>
+
+          <div class="tier__foot">
+            <button class="btn btn--block" type="button" style="background:var(--grape);color:#fff" data-add-to-cart="premium">Add Premium Box &mdash; $45</button>
+            <a class="btn btn--ghost btn--sm btn--block" href="box.html?tier=premium">See full details</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="edge-torn" style="background:var(--paper)"></div>
+
+  <!-- ========================= COMPARISON TABLE ========================= -->
+  <section class="section" aria-labelledby="compare-title">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Side by side</p>
+        <h2 id="compare-title">The whole thing on one table</h2>
+        <p class="lead">Including the numbers most mystery-box sites leave out.</p>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="odds-table" style="min-width:640px">
+          <caption>Per-slot odds are the probability for a single feature slot. Percentages in each tier column sum to 100%.</caption>
+          <thead>
+            <tr>
+              <th scope="col">&nbsp;</th>
+              <th scope="col" style="text-align:left">Starter &mdash; $10</th>
+              <th scope="col" style="text-align:left">Classic &mdash; $22</th>
+              <th scope="col" style="text-align:left">Premium &mdash; $45</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row" style="text-align:left">Garments</th><td style="text-align:left">5</td><td style="text-align:left">6</td><td style="text-align:left">6</td></tr>
+            <tr><th scope="row" style="text-align:left">Feature slots</th><td style="text-align:left">1</td><td style="text-align:left">2</td><td style="text-align:left">2</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span></th><td style="text-align:left">2%</td><td style="text-align:left">6%</td><td style="text-align:left">20%</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span></th><td style="text-align:left">5%</td><td style="text-align:left">12%</td><td style="text-align:left">30%</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span></th><td style="text-align:left">13%</td><td style="text-align:left">22%</td><td style="text-align:left">35%</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span></th><td style="text-align:left">25%</td><td style="text-align:left">25%</td><td style="text-align:left">15%</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span></th><td style="text-align:left">55%</td><td style="text-align:left">35%</td><td style="text-align:left">never</td></tr>
+            <tr><th scope="row" style="text-align:left">Chance of a standout per box</th><td style="text-align:left">45%</td><td style="text-align:left">87.8%</td><td style="text-align:left">100%</td></tr>
+            <tr><th scope="row" style="text-align:left">Avg. clothing rescued</th><td style="text-align:left">4.2 lbs</td><td style="text-align:left">5.6 lbs</td><td style="text-align:left">6.4 lbs</td></tr>
+            <tr><th scope="row" style="text-align:left">Sustainability score</th><td style="text-align:left">82 (B+)</td><td style="text-align:left">88 (A&minus;)</td><td style="text-align:left">94 (A)</td></tr>
+            <tr><th scope="row" style="text-align:left">Free swaps</th><td style="text-align:left">&mdash;</td><td style="text-align:left">1</td><td style="text-align:left">2 + prepaid label</td></tr>
+            <tr><th scope="row" style="text-align:left">Ships in</th><td style="text-align:left">3&ndash;5 days</td><td style="text-align:left">2&ndash;4 days</td><td style="text-align:left">1&ndash;3 days</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout" style="margin-top:var(--sp-6)">
+        <h3><span data-icon="warning"></span> What "standout per box" actually means</h3>
+        <p class="muted" style="margin:0">
+          It's the chance that <em>at least one</em> of your feature slots lands on something
+          other than an Everyday Staple. For the Classic Box that's
+          1 &minus; (0.35 &times; 0.35) = 87.8%, because it has two independent feature slots.
+          The Starter Box has one slot, so it's simply 45%. We show the arithmetic because a
+          single big percentage with no working is how these sites usually mislead people.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== IN EVERY BOX ====================== -->
+  <section class="section section--forest" aria-labelledby="every-title">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow"><span data-icon="leaf" style="width:16px"></span> Regardless of tier</p>
+        <h2 id="every-title">In every single box</h2>
+      </div>
+      <div class="grid grid--4">
+        <div class="card card--plain reveal" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.18);color:var(--sage-soft)">
+          <div class="card__icon" style="background:var(--sun)" data-icon="recycle"></div>
+          <h3 style="font-size:var(--t-md)">100% secondhand</h3>
+          <p class="muted" style="color:var(--sage)">Not a single new garment. Ever. No deadstock, no overruns, no factory seconds.</p>
+        </div>
+        <div class="card card--plain reveal" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.18);color:var(--sage-soft)">
+          <div class="card__icon" style="background:var(--sun)" data-icon="hanger"></div>
+          <h3 style="font-size:var(--t-md)">Washed &amp; steamed</h3>
+          <p class="muted" style="color:var(--sage)">Eco detergent, cold cycle, line dry where we can. It arrives ready to wear.</p>
+        </div>
+        <div class="card card--plain reveal" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.18);color:var(--sage-soft)">
+          <div class="card__icon" style="background:var(--sun)" data-icon="store"></div>
+          <h3 style="font-size:var(--t-md)">Origin note card</h3>
+          <p class="muted" style="color:var(--sage)">Every piece listed with the shop it came from and the grade our sorter gave it.</p>
+        </div>
+        <div class="card card--plain reveal" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.18);color:var(--sage-soft)">
+          <div class="card__icon" style="background:var(--sun)" data-icon="box"></div>
+          <h3 style="font-size:var(--t-md)">Plastic-free packing</h3>
+          <p class="muted" style="color:var(--sage)">Recycled kraft box, paper tape, paper wrap. Nothing you have to throw away.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= CTA BAND ============================= -->
+  <section class="cta-band">
+    <div class="container container--narrow">
+      <p class="eyebrow">Still deciding?</p>
+      <h2>Start with the $10 box.</h2>
+      <p class="lead">
+        Lower odds, but the same sourcing and the same sorters. Plenty of people start there and
+        move up once they trust us.
+      </p>
+      <div class="cluster">
+        <button class="btn btn--lg btn--sun" type="button" data-add-to-cart="starter">Add Starter Box &mdash; $10</button>
+        <a class="btn btn--lg btn--ghost" href="faq.html#odds">How the odds work</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="index.html">
+          <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="18" fill="#f7f2e6"/>
+            <path d="M20 20 L20 4 A16 16 0 0 1 35.2 15.1 Z" fill="#7b5ea7"/>
+            <path d="M20 20 L35.2 15.1 A16 16 0 0 1 29.4 32.9 Z" fill="#f4b429"/>
+            <path d="M20 20 L29.4 32.9 A16 16 0 0 1 10.6 32.9 Z" fill="#e4572e"/>
+            <path d="M20 20 L10.6 32.9 A16 16 0 0 1 4.8 15.1 Z" fill="#3e9bc0"/>
+            <path d="M20 20 L4.8 15.1 A16 16 0 0 1 20 4 Z" fill="#3c7a4e"/>
+            <circle cx="20" cy="20" r="7.6" fill="#f7f2e6" stroke="#16241b" stroke-width="2"/>
+          </svg>
+          <span>Second Spin</span>
+        </a>
+        <p class="footer-tagline">
+          Thrift blind boxes with the odds on the label. We rescue the clothing that thrift
+          stores can't shelve, and we tell you exactly what your chances are.
+        </p>
+        <form class="newsletter" data-newsletter novalidate>
+          <label class="visually-hidden" for="nl-email">Email address</label>
+          <input id="nl-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+          <button class="btn btn--sun btn--sm" type="submit">Get restock alerts</button>
+          <p class="form-msg" data-form-msg role="status"></p>
+        </form>
+      </div>
+
+      <div>
+        <h4>Shop</h4>
+        <ul class="footer-list">
+          <li><a href="box.html?tier=starter">Starter Box &mdash; $10</a></li>
+          <li><a href="box.html?tier=classic">Classic Box &mdash; $22</a></li>
+          <li><a href="box.html?tier=premium">Premium Box &mdash; $45</a></li>
+          <li><a href="shop.html">Compare tiers</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Learn</h4>
+        <ul class="footer-list">
+          <li><a href="impact.html">Our impact</a></li>
+          <li><a href="about.html">Our story</a></li>
+          <li><a href="faq.html#odds">Odds &amp; fairness</a></li>
+          <li><a href="impact.html#receipts">How we count</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Support</h4>
+        <ul class="footer-list">
+          <li><a href="faq.html#shipping">Shipping</a></li>
+          <li><a href="faq.html#returns">Returns &amp; swaps</a></li>
+          <li><a href="faq.html#sizing">Sizing</a></li>
+          <li><a href="about.html#contact">Contact us</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p style="margin:0">&copy; <span data-year>2026</span> Second Spin. Odds published and version-controlled.</p>
+      <p style="margin:0">Demo site &mdash; illustrative data, no live checkout.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================ CART DRAWER ============================ -->
+<div class="drawer" data-cart-drawer role="dialog" aria-modal="true" aria-label="Your box bag">
+  <div class="drawer__scrim" data-cart-scrim></div>
+  <div class="drawer__panel">
+    <div class="drawer__head">
+      <h3 style="margin:0;font-size:var(--t-md)">Your box bag</h3>
+      <button class="modal__close" type="button" data-cart-close aria-label="Close bag" data-icon="close"></button>
+    </div>
+    <div class="drawer__body" data-cart-body></div>
+    <div class="drawer__foot" data-cart-foot hidden>
+      <div class="cart-total">
+        <span>Clothing rescued <b data-cart-lbs>0 lbs</b></span>
+        <strong data-cart-total>$0</strong>
+      </div>
+      <button class="btn btn--berry btn--block" type="button" data-checkout>Checkout</button>
+      <p class="form-msg" data-checkout-msg role="status"></p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/site-data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/wheel.js"></script>
+</body>
+</html>

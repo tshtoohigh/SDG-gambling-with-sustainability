@@ -1,0 +1,17 @@
+# Kiro session config and artifacts (screenshots live in docs/screenshots)
+.kiro/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Nothing here is built, but just in case a tool gets pointed at it
+node_modules/
+dist/
+.cache/

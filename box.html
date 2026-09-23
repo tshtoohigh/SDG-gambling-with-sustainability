@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thrift blind box — spin the wheel, see the odds | Second Spin</title>
+<meta name="description" content="5–6 rescued secondhand garments per box. Spin the odds wheel for free before you buy, and see exactly what each feature slot can land on.">
+<meta name="theme-color" content="#1e4430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19' fill='%231e4430'/%3E%3Cpath d='M20 20 L20 5 A15 15 0 0 1 34.3 15.4 Z' fill='%23f4b429'/%3E%3Cpath d='M20 20 L34.3 15.4 A15 15 0 0 1 20 35 Z' fill='%23e4572e'/%3E%3Cpath d='M20 20 L20 35 A15 15 0 0 1 5.7 15.4 Z' fill='%233e9bc0'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/pages.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ============================ HEADER ============================ -->
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="index.html">
+      <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#16241b"/>
+        <path d="M20 20 L20 4 A16 16 0 0 1 35.2 15.1 Z" fill="#7b5ea7"/>
+        <path d="M20 20 L35.2 15.1 A16 16 0 0 1 29.4 32.9 Z" fill="#f4b429"/>
+        <path d="M20 20 L29.4 32.9 A16 16 0 0 1 10.6 32.9 Z" fill="#e4572e"/>
+        <path d="M20 20 L10.6 32.9 A16 16 0 0 1 4.8 15.1 Z" fill="#3e9bc0"/>
+        <path d="M20 20 L4.8 15.1 A16 16 0 0 1 20 4 Z" fill="#3c7a4e"/>
+        <circle cx="20" cy="20" r="7.6" fill="#f7f2e6" stroke="#16241b" stroke-width="2"/>
+        <path d="M16.8 23c0-3.3 2.2-5.7 6.8-6.1.4 4.5-2.1 6.5-5.3 6.5h-1.5z" fill="#3c7a4e"/>
+      </svg>
+      <span>Second Spin</span>
+    </a>
+
+    <nav class="nav" id="site-nav" data-nav aria-label="Main">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="shop.html" aria-current="page">Shop boxes</a></li>
+        <li><a class="nav__link" href="impact.html">Our impact</a></li>
+        <li><a class="nav__link" href="about.html">Our story</a></li>
+        <li><a class="nav__link" href="faq.html">FAQ</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="btn btn--ghost btn--sm cart-btn" type="button" data-cart-open aria-label="Open your box bag">
+        <span data-icon="cart" style="width:20px;display:block"></span>
+        <span class="cart-btn__count" data-cart-count>0</span>
+      </button>
+      <a class="btn btn--sun btn--sm header-cta" href="shop.html">Shop boxes</a>
+      <button class="btn btn--ghost btn--sm nav-toggle" type="button" data-nav-toggle
+              aria-expanded="false" aria-controls="site-nav" aria-label="Toggle menu"></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============================ BREADCRUMB ============================ -->
+  <nav class="breadcrumb container" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html">Shop boxes</a></li>
+      <li aria-current="page"><span data-tier-bind="name">Classic Box</span></li>
+    </ol>
+  </nav>
+
+  <!-- ============================= PRODUCT ============================= -->
+  <section class="container product" data-product aria-labelledby="product-title">
+
+    <!-- ---------- LEFT: the reveal wheel ---------- -->
+    <div class="product__stage" data-wheel-scope data-wheel-tier="classic">
+      <p class="eyebrow" style="justify-content:center;width:100%;text-align:center;display:flex">
+        <span data-icon="wheel" style="width:16px"></span> Feature slot odds, drawn to scale
+      </p>
+
+      <div class="wheel-stage" data-wheel-stage>
+        <canvas class="wheel-stage__canvas" data-wheel-canvas></canvas>
+        <svg class="wheel-stage__pointer" data-wheel-pointer viewBox="0 0 34 44" aria-hidden="true">
+          <path d="M17 42 L3 10 A16 16 0 0 1 31 10 Z" fill="#f7f2e6" stroke="#16241b" stroke-width="3" stroke-linejoin="round"/>
+          <circle cx="17" cy="13" r="4.5" fill="#e4572e" stroke="#16241b" stroke-width="2.5"/>
+        </svg>
+        <div class="wheel-stage__hub" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#16241b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 20c0-8 5-14 16-15 1 11-5 16-13 16H4z"/><path d="M4 20c3-5 7-8 12-9"/>
+          </svg>
+        </div>
+        <div class="confetti" data-confetti aria-hidden="true"></div>
+      </div>
+
+      <div class="cluster" style="justify-content:center;margin-top:var(--sp-5)">
+        <button class="btn btn--berry btn--lg" type="button" data-wheel-spin>Spin the wheel</button>
+        <button class="link-btn" type="button" data-odds-modal="classic" data-product-odds>Odds breakdown</button>
+      </div>
+
+      <div class="wheel-result" data-wheel-result role="status" style="margin-top:var(--sp-5)"></div>
+
+      <p class="sim-note" style="margin-top:var(--sp-4)">
+        <span data-icon="info"></span>
+        <span>
+          <b>Practice spin.</b> This doesn't buy anything, doesn't reserve a garment and doesn't
+          change your odds. It exists so you can see exactly what you're buying a chance at
+          before you pay. Your box is packed by hand against this same table.
+        </span>
+      </p>
+
+      <div data-wheel-tally style="margin-top:var(--sp-4)"></div>
+    </div>
+
+    <!-- ---------- RIGHT: buy panel ---------- -->
+    <div>
+      <div class="tier-switch" data-tier-switch role="group" aria-label="Choose your box tier" style="margin-bottom:var(--sp-5)">
+        <button class="tier-switch__btn" type="button" data-tier-value="starter" aria-pressed="false">Starter $10</button>
+        <button class="tier-switch__btn" type="button" data-tier-value="classic" aria-pressed="true">Classic $22</button>
+        <button class="tier-switch__btn" type="button" data-tier-value="premium" aria-pressed="false">Premium $45</button>
+      </div>
+
+      <p class="eyebrow">Thrift blind box &middot; 100% secondhand</p>
+      <h1 id="product-title" style="font-size:var(--t-2xl)"><span data-tier-bind="name">Classic Box</span></h1>
+      <p class="lead" data-tier-bind="tagline">The balanced one. Two feature slots, real chance of a standout.</p>
+
+      <div class="product__price">
+        <b data-tier-bind="price">$22</b>
+        <span class="muted">for <span data-tier-bind="items">6 items</span> &middot; <span data-tier-bind="weight">~5.6 lbs</span> of clothing</span>
+      </div>
+
+      <!-- odds at a glance -->
+      <div class="card card--plain" style="background:var(--paper-2);margin-bottom:var(--sp-5)">
+        <p class="eyebrow" style="margin-bottom:var(--sp-2)">Your feature slot odds</p>
+        <div class="odds-bar" data-tier-oddsbar></div>
+        <div class="odds-legend" data-tier-oddslegend style="margin-top:var(--sp-3)"></div>
+        <p class="muted" style="margin-top:var(--sp-3);font-size:var(--t-xs)" data-tier-bind="odds">
+          Vintage Rare 6% · Designer Label 12% · Statement Piece 22% · Seasonal Pick 25% · Everyday Staple 35%
+        </p>
+        <p style="margin:var(--sp-3) 0 0;font-size:var(--t-sm)">
+          Chance at least one feature slot beats a basic:
+          <b data-tier-bind="standout">87.8%</b>
+        </p>
+      </div>
+
+      <!-- fit -->
+      <div class="stack" style="margin-bottom:var(--sp-5)">
+        <div>
+          <label class="eyebrow" for="size-main" style="display:block;margin-bottom:var(--sp-2)">Primary size (required)</label>
+          <select id="size-main" name="size-main" class="pill" style="padding:0.6em 1em;width:100%;max-width:280px">
+            <option>XS</option><option>S</option><option selected>M</option>
+            <option>L</option><option>XL</option><option>2XL</option><option>3XL</option>
+          </select>
+        </div>
+        <div>
+          <label class="eyebrow" for="size-alt" style="display:block;margin-bottom:var(--sp-2)">Second acceptable size</label>
+          <select id="size-alt" name="size-alt" class="pill" style="padding:0.6em 1em;width:100%;max-width:280px">
+            <option>XS</option><option>S</option><option>M</option>
+            <option selected>L</option><option>XL</option><option>2XL</option><option>3XL</option>
+          </select>
+          <p class="muted" style="margin-top:var(--sp-2);font-size:var(--t-xs)">
+            Two sizes doubles what our sorters can pull for you. Vintage sizing runs small &mdash;
+            we grade by measurement, not by the label.
+          </p>
+        </div>
+      </div>
+
+      <button class="btn btn--berry btn--lg btn--block" type="button" data-add-to-cart="classic">Add Classic Box &mdash; $22</button>
+
+      <p class="muted center" style="margin-top:var(--sp-3);font-size:var(--t-xs)">
+        Ships in <b data-tier-bind="ships">2&ndash;4 business days</b> &middot;
+        <a href="faq.html#returns">Swap policy for blind items</a>
+      </p>
+
+      <!-- sustainability score -->
+      <div class="sustain" style="margin-top:var(--sp-5)">
+        <div class="sustain__ring" data-tier-ring><span class="sustain__num" data-tier-bind="score">88</span></div>
+        <p class="sustain__text">
+          <b>Sustainability score <span data-tier-bind="score">88</span> &middot; grade <span data-tier-bind="grade">A&minus;</span></b>
+          Scored on weight diverted, garment condition, packaging and swap policy.
+          <a href="impact.html#score">See the method</a>
+        </p>
+      </div>
+
+      <!-- guarantee -->
+      <div class="card card--plain" style="margin-top:var(--sp-5);border-left:8px solid var(--moss)">
+        <p class="eyebrow" style="margin-bottom:var(--sp-2)"><span data-icon="shield" style="width:15px"></span> Our promise on this tier</p>
+        <p style="margin:0;font-size:var(--t-sm)" data-tier-guarantee>
+          At least one piece per box is graded Excellent condition.
+        </p>
+      </div>
+
+      <!-- what's included -->
+      <div style="margin-top:var(--sp-6)">
+        <h3 style="font-size:var(--t-md)">Included</h3>
+        <ul class="tier__feature-list" data-tier-features>
+          <li><span data-icon="check"></span><span>6 garments, 2 feature slots</span></li>
+        </ul>
+      </div>
+
+      <!-- specs -->
+      <div style="margin-top:var(--sp-6)">
+        <h3 style="font-size:var(--t-md)">The details</h3>
+        <ul class="spec-list">
+          <li><span><b>Garments</b></span><span data-tier-bind="items">6 items</span></li>
+          <li><span><b>Feature slots</b></span><span data-tier-bind="featureSlots">2</span></li>
+          <li><span><b>Everyday staples</b></span><span data-tier-bind="everydaySlots">4</span></li>
+          <li><span><b>Typical weight</b></span><span data-tier-bind="weight">~5.6 lbs</span></li>
+          <li><span><b>Condition floor</b></span><span>Wearable as-is, no holes or stains</span></li>
+          <li><span><b>Sourced from</b></span><span>24 partner thrift stores, bought by weight</span></li>
+          <li><span><b>Packaging</b></span><span>Recycled kraft, paper tape, zero plastic</span></li>
+          <li><span><b>Ships in</b></span><span data-tier-bind="ships">2&ndash;4 business days</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="edge-torn" style="background:var(--paper-2)"></div>
+
+  <!-- ========================= SLOT BREAKDOWN ========================= -->
+  <section class="section section--paper2" aria-labelledby="slots-title">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Anatomy of a box</p>
+        <h2 id="slots-title">Where the randomness actually is</h2>
+        <p class="lead">
+          Only the feature slots are rolled. The everyday staples aren't a lottery &mdash; they're
+          guaranteed wearable basics, chosen to your size. That means the floor of every box is
+          useful clothing, not filler.
+        </p>
+      </div>
+
+      <div class="slot-grid" data-slot-grid></div>
+
+      <div class="grid grid--2" style="margin-top:var(--sp-6)">
+        <div class="card">
+          <h3 style="font-size:var(--t-md)"><span data-icon="sparkle" style="width:18px;display:inline-block;vertical-align:-3px;color:var(--sun)"></span> Feature slots</h3>
+          <p class="muted" style="margin:0">
+            Rolled independently against the published table. Two slots means two separate
+            chances &mdash; not one chance doubled. A sorter draws from the graded rare rail to
+            match the ratios, and we audit the realised rates monthly.
+          </p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:var(--t-md)"><span data-icon="tshirt" style="width:18px;display:inline-block;vertical-align:-3px;color:var(--moss)"></span> Everyday staples</h3>
+          <p class="muted" style="margin:0">
+            No roll, no rarity. Solid basics in your size that were heading for a bale: merino
+            jumpers, straight-leg denim, unpilled cotton tees. This is the majority of the weight
+            we divert, and honestly the part that gets worn most.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="edge-torn" style="background:var(--paper)"></div>
+
+  <!-- ========================= SOURCING ========================= -->
+  <section class="section" aria-labelledby="sourcing-title">
+    <div class="container split">
+      <div class="prose">
+        <p class="eyebrow"><span data-icon="store" style="width:16px"></span> Where this comes from</p>
+        <h2 id="sourcing-title">Bought by weight, sorted by hand</h2>
+        <p>
+          A thrift store can only hang a fraction of what it's donated. The rest gets baled and
+          sold on by the pound &mdash; usually for export or shredding. That's the stream we buy
+          from, and it's why a $10 box can contain something genuinely good: the garment was
+          never priced individually in the first place.
+        </p>
+        <p>
+          Every bale is opened on a bench and graded piece by piece. Roughly a third of what we
+          buy doesn't make it into a box &mdash; it goes to textile recycling instead. We'd rather
+          tell you that than pretend our yield is perfect.
+        </p>
+        <ul>
+          <li><b>Holes, stains, heavy pilling</b> <svg class="inline-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="leads to" role="img"><path d="M4 12h14M13 6l6 6-6 6"/></svg> textile recycling, never a box.</li>
+          <li><b>Wearable basics</b> <svg class="inline-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="leads to" role="img"><path d="M4 12h14M13 6l6 6-6 6"/></svg> everyday staple slots.</li>
+          <li><b>Pre-2000s, labelled, or unusual</b> <svg class="inline-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="leads to" role="img"><path d="M4 12h14M13 6l6 6-6 6"/></svg> graded onto the feature rail.</li>
+        </ul>
+        <p><a class="btn" href="about.html">Read the full story</a></p>
+      </div>
+
+      <aside class="card aside-card">
+        <h3 style="font-size:var(--t-md)">This box's sustainability math</h3>
+        <ul class="spec-list">
+          <li><span><b>Clothing diverted</b></span><span data-tier-bind="weight">~5.6 lbs</span></li>
+          <li><span><b>New garments made</b></span><span>0</span></li>
+          <li><span><b>Plastic in packaging</b></span><span>0 g</span></li>
+          <li><span><b>Sustainability score</b></span><span><b data-tier-bind="score">88</b> / 100</span></li>
+        </ul>
+        <p class="muted" style="margin-top:var(--sp-4);font-size:var(--t-xs)">
+          We deliberately don't publish a litres-of-water or kg-of-CO&#8322; figure for each box.
+          The conversion factors for garment reuse vary so widely between studies that any number
+          we printed would be marketing, not measurement.
+          <a href="impact.html#limits">Why we won't guess</a>
+        </p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ========================= REVIEWS ========================= -->
+  <section class="section section--paper2" aria-labelledby="reviews-title">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Unboxings</p>
+        <h2 id="reviews-title">What people actually got</h2>
+        <p class="lead">We publish the disappointing ones too. Odds are odds.</p>
+      </div>
+      <div class="grid grid--3">
+        <figure class="quote reveal">
+          <div class="quote__stars" aria-label="5 out of 5 stars"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg></div>
+          <span class="quote__find">Hit: Vintage Rare</span>
+          <blockquote>Landed the 6% on my second Classic box. A 1980s wool overcoat that fits like it was made for me. The other five pieces are in my weekly rotation.</blockquote>
+          <figcaption class="quote__who">
+            <span class="avatar" style="background:color-mix(in srgb, var(--grape) 35%, var(--paper))">JT</span>
+            <span><span class="quote__name">Jo T.</span><br><span class="quote__meta">Classic Box &middot; 6 boxes in</span></span>
+          </figcaption>
+        </figure>
+        <figure class="quote reveal">
+          <div class="quote__stars" aria-label="3 out of 5 stars"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg></div>
+          <span class="quote__find">Hit: Everyday Staple ×2</span>
+          <blockquote>Both feature slots came up basics. That's a 12% outcome and I hit it. Annoying, but the site told me the number up front and the swap was genuinely free.</blockquote>
+          <figcaption class="quote__who">
+            <span class="avatar" style="background:color-mix(in srgb, var(--moss) 32%, var(--paper))">RP</span>
+            <span><span class="quote__name">Ren P.</span><br><span class="quote__meta">Classic Box &middot; 2 boxes in</span></span>
+          </figcaption>
+        </figure>
+        <figure class="quote reveal">
+          <div class="quote__stars" aria-label="5 out of 5 stars"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L10 14.6 4.9 17.4 6 11.6 1.7 7.6l5.8-.7z"/></svg></div>
+          <span class="quote__find">Hit: Designer Label</span>
+          <blockquote>Premium is the one worth buying. Everything arrived pressed and paper-wrapped, and nothing in it felt like padding. The note card with each shop name is a lovely touch.</blockquote>
+          <figcaption class="quote__who">
+            <span class="avatar" style="background:color-mix(in srgb, var(--sun) 45%, var(--paper))">LN</span>
+            <span><span class="quote__name">Lena N.</span><br><span class="quote__meta">Premium Box &middot; 11 boxes in</span></span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= CTA BAND ============================= -->
+  <section class="cta-band">
+    <div class="container container--narrow">
+      <p class="eyebrow">Questions first?</p>
+      <h2>Blind boxes deserve extra-clear terms.</h2>
+      <p class="lead">
+        How sourcing works, what happens if nothing fits, and why we won't let you return a box
+        just because the roll didn't go your way.
+      </p>
+      <div class="cluster">
+        <a class="btn btn--lg btn--sun" href="faq.html">Read the FAQ</a>
+        <a class="btn btn--lg btn--ghost" href="shop.html">Compare tiers</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="index.html">
+          <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="18" fill="#f7f2e6"/>
+            <path d="M20 20 L20 4 A16 16 0 0 1 35.2 15.1 Z" fill="#7b5ea7"/>
+            <path d="M20 20 L35.2 15.1 A16 16 0 0 1 29.4 32.9 Z" fill="#f4b429"/>
+            <path d="M20 20 L29.4 32.9 A16 16 0 0 1 10.6 32.9 Z" fill="#e4572e"/>
+            <path d="M20 20 L10.6 32.9 A16 16 0 0 1 4.8 15.1 Z" fill="#3e9bc0"/>
+            <path d="M20 20 L4.8 15.1 A16 16 0 0 1 20 4 Z" fill="#3c7a4e"/>
+            <circle cx="20" cy="20" r="7.6" fill="#f7f2e6" stroke="#16241b" stroke-width="2"/>
+          </svg>
+          <span>Second Spin</span>
+        </a>
+        <p class="footer-tagline">
+          Thrift blind boxes with the odds on the label. We rescue the clothing that thrift
+          stores can't shelve, and we tell you exactly what your chances are.
+        </p>
+        <form class="newsletter" data-newsletter novalidate>
+          <label class="visually-hidden" for="nl-email">Email address</label>
+          <input id="nl-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+          <button class="btn btn--sun btn--sm" type="submit">Get restock alerts</button>
+          <p class="form-msg" data-form-msg role="status"></p>
+        </form>
+      </div>
+
+      <div>
+        <h4>Shop</h4>
+        <ul class="footer-list">
+          <li><a href="box.html?tier=starter">Starter Box &mdash; $10</a></li>
+          <li><a href="box.html?tier=classic">Classic Box &mdash; $22</a></li>
+          <li><a href="box.html?tier=premium">Premium Box &mdash; $45</a></li>
+          <li><a href="shop.html">Compare tiers</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Learn</h4>
+        <ul class="footer-list">
+          <li><a href="impact.html">Our impact</a></li>
+          <li><a href="about.html">Our story</a></li>
+          <li><a href="faq.html#odds">Odds &amp; fairness</a></li>
+          <li><a href="impact.html#receipts">How we count</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Support</h4>
+        <ul class="footer-list">
+          <li><a href="faq.html#shipping">Shipping</a></li>
+          <li><a href="faq.html#returns">Returns &amp; swaps</a></li>
+          <li><a href="faq.html#sizing">Sizing</a></li>
+          <li><a href="about.html#contact">Contact us</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p style="margin:0">&copy; <span data-year>2026</span> Second Spin. Odds published and version-controlled.</p>
+      <p style="margin:0">Demo site &mdash; illustrative data, no live checkout.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================ CART DRAWER ============================ -->
+<div class="drawer" data-cart-drawer role="dialog" aria-modal="true" aria-label="Your box bag">
+  <div class="drawer__scrim" data-cart-scrim></div>
+  <div class="drawer__panel">
+    <div class="drawer__head">
+      <h3 style="margin:0;font-size:var(--t-md)">Your box bag</h3>
+      <button class="modal__close" type="button" data-cart-close aria-label="Close bag" data-icon="close"></button>
+    </div>
+    <div class="drawer__body" data-cart-body></div>
+    <div class="drawer__foot" data-cart-foot hidden>
+      <div class="cart-total">
+        <span>Clothing rescued <b data-cart-lbs>0 lbs</b></span>
+        <strong data-cart-total>$0</strong>
+      </div>
+      <button class="btn btn--berry btn--block" type="button" data-checkout>Checkout</button>
+      <p class="form-msg" data-checkout-msg role="status"></p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/site-data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/wheel.js"></script>
+</body>
+</html>
