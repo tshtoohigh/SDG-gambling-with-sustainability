@@ -50,6 +50,7 @@ assets/
     product.js     tier switching and product-page data binding
     account.js     ← accounts, the real draw, vault, delivery, sell-back, credit
     account-ui.js  the My Vault page
+    bus.js         change bus — one action, one coordinated refresh
     item-catalog.js  generated garment catalogue (see tools/)
     lookbook.js    lookbook rendering and filtering
 tools/
@@ -57,7 +58,7 @@ tools/
   generate-assets.py       generates the 200 garment sprites + catalogue
   verify-odds.py           cross-checks every published odds figure against site-data.js
 tests/
-  interaction-test.html    120 in-browser assertions (see Verification)
+  interaction-test.html    139 in-browser assertions (see Verification)
   screenshot-harness.html  scrolls a page to a selector for section screenshots
 ```
 
@@ -190,6 +191,29 @@ they are non-negotiable:
 
 The FAQ says outright that if you find yourself selling pieces back mainly to fund more
 boxes, that is the point to stop.
+
+### Coordinated refresh
+
+Every surface re-renders from a single change event rather than each mutation poking each
+surface by hand (`assets/js/bus.js`).
+
+Anything that mutates state calls `Bus.emit()` exactly once; renderers subscribe with
+`Bus.on()` and must be idempotent and side-effect free. That closes a class of staleness
+bug — before it existed, selling a piece back credited the account but left the cart
+drawer's "store credit" line showing the old figure, and buying a box updated the cart
+badge but not the header vault chip.
+
+It also handles **cross-tab sync**: a write in one tab fires the browser's `storage`
+event, the other tab re-reads persisted state and refreshes itself.
+
+Two details worth knowing if you extend it:
+
+- **Vault selection survives a refresh.** Ticked items are held in a `Set` and restored
+  after every re-render, so a refresh from anywhere (including another tab) doesn't
+  silently clear what the visitor selected.
+- **Refresh is suppressed mid-reveal.** Re-rendering while the reel is animating would
+  tear out the element the visitor is watching, so the account page holds off until the
+  reveal lands.
 
 ### Trade Up
 
@@ -342,7 +366,7 @@ chrome --headless --no-sandbox --force-prefers-reduced-motion \
 `--force-prefers-reduced-motion` makes opens resolve synchronously, which keeps the
 assertions fast and deterministic.
 
-It currently runs **120 assertions**. It covers, among other things:
+It currently runs **139 assertions**. It covers, among other things:
 
 - **every cell count equals its published proportion** (the load-bearing claim of the
   whole design), and the strip lands **dead centre** with 0.00px drift
