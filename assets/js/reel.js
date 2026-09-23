@@ -230,11 +230,32 @@ class Reel {
     this.renderTally();
   }
 
+  /**
+   * Animate to an outcome that has ALREADY been decided and recorded elsewhere
+   * — used for real box openings, where account.js resolves and persists the
+   * draw before any pixels move. The reel is strictly a presentation layer
+   * here; it cannot influence what you got.
+   *
+   * @param {string} rarityId the recorded outcome
+   * @param {object|null} art the specific catalogue garment awarded
+   * @returns {Promise} resolves once the strip has landed
+   */
+  revealOutcome(rarityId, art) {
+    return new Promise((resolve) => {
+      this.forced = { rarityId, art: art || null };
+      this.onLanded = resolve;
+      this.open();
+    });
+  }
+
   open() {
     if (this.running) return;
 
-    /* 1. Resolve the outcome first, from whatever table the reel is on. */
-    const winnerId = drawRarity(this.currentOdds(), this.pool.map((r) => r.id));
+    /* 1. Resolve the outcome — unless one was handed to us by a real opening,
+          in which case it was drawn and persisted before we were called. */
+    const winnerId = this.forced
+      ? this.forced.rarityId
+      : drawRarity(this.currentOdds(), this.pool.map((r) => r.id));
     if (!winnerId) return;
 
     /* 2. Rebuild the strip with that outcome at the landing index. */
@@ -270,7 +291,13 @@ class Reel {
         this.btn.disabled = false;
         this.btn.textContent = this.btn.dataset.label || 'Open again';
       }
-      this.recordResult(winner.rarity, winner.art);
+      /* A real opening supplies the exact garment awarded; a practice open
+         just shows a representative one from the catalogue. */
+      const art = this.forced ? this.forced.art : winner.art;
+      const live = Boolean(this.forced);
+      this.forced = null;
+      this.recordResult(winner.rarity, art, live);
+      if (this.onLanded) { const done = this.onLanded; this.onLanded = null; done(); }
     };
 
     if (prefersReducedMotion()) { finish(); return; }
@@ -411,11 +438,39 @@ class Reel {
       </p>`;
   }
 
-  recordResult(seg, art) {
+  recordResult(seg, art, live) {
     this.opens += 1;
     this.tally[seg.id] = (this.tally[seg.id] || 0) + 1;
     this.lastResult = seg;
     this.renderTally();
+
+    /* A real opening is already banked, so it must not offer a free practice
+       Trade Up or claim to be a simulator. */
+    if (live) {
+      if (this.resultEl) {
+        this.resultEl.classList.add('is-hit');
+        this.resultEl.innerHTML = `
+          <p class="eyebrow">Your feature slot</p>
+          <div style="display:flex;gap:var(--sp-4);align-items:center;flex-wrap:wrap">
+            ${art ? `<span class="item-thumb__frame" style="background:color-mix(in srgb, ${seg.color} 16%, var(--paper))">
+                <img class="item-thumb__img" src="${art.file}" width="52" height="52"
+                     alt="Pixel-art illustration of a ${art.colourway.toLowerCase()} ${art.typeLabel.toLowerCase()}">
+              </span>` : ''}
+            <span>
+              <span class="chip" data-rarity="${seg.id}">
+                <span class="dot" data-rarity="${seg.id}" style="background:${seg.color}"></span>
+                ${seg.label} &middot; ${seg.pct}% chance
+              </span>
+              ${art ? `<p style="margin:var(--sp-2) 0 0;font-weight:800;font-size:var(--t-sm)">${art.name}</p>` : ''}
+            </span>
+          </div>
+          <p class="reveal-result__example" style="margin-top:var(--sp-3)">${seg.blurb}</p>
+          <p class="reveal-result__example">${seg.resaleBand}. This is yours &mdash; it's in your vault.</p>`;
+        this.resultEl.setAttribute('aria-live', 'polite');
+      }
+      if (seg.id === 'rare' || seg.id === 'designer') this.fireConfetti(seg.color);
+      return;
+    }
 
     if (this.resultEl) {
       const traded = this.tradeUps > 0;

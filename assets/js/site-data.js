@@ -122,7 +122,7 @@ const TIERS = [
       'Carbon-light ground shipping only',
     ],
     guarantee: null,
-    odds: { rare: 2, designer: 5, statement: 13, seasonal: 25, everyday: 55 },
+    odds: { rare: 3, designer: 7, statement: 16, seasonal: 26, everyday: 48 },
   },
   {
     id: 'classic',
@@ -147,7 +147,7 @@ const TIERS = [
       'One free swap if something doesn\u2019t fit',
     ],
     guarantee: 'At least one piece per box is graded Excellent condition.',
-    odds: { rare: 6, designer: 12, statement: 22, seasonal: 25, everyday: 35 },
+    odds: { rare: 8, designer: 15, statement: 25, seasonal: 25, everyday: 27 },
   },
   {
     id: 'premium',
@@ -172,7 +172,7 @@ const TIERS = [
       'Two free swaps + prepaid return label',
     ],
     guarantee: 'Guaranteed: both feature slots are Vintage, Designer, Statement or Seasonal \u2014 never a basic.',
-    odds: { rare: 20, designer: 30, statement: 35, seasonal: 15, everyday: 0 },
+    odds: { rare: 24, designer: 32, statement: 34, seasonal: 10, everyday: 0 },
   },
 ];
 
@@ -418,3 +418,29 @@ function tradeUpFloor(tier, fromId) {
     });
   });
 })();
+
+/* --------------------------------------------------------------------------
+   Exports — MUST stay at the end of this file.
+   Top-level `const` is not a property of `window`, so the tables are exposed
+   explicitly for console debugging and for the test harness, which reads them
+   across an iframe boundary.
+
+   Order matters: TRADE_UP and the Trade Up helpers are declared in the section
+   above, so referencing them from higher up the file hits the temporal dead
+   zone and throws a ReferenceError that kills the rest of the script.
+   -------------------------------------------------------------------------- */
+if (typeof window !== 'undefined') {
+  window.TIERS = TIERS;
+  window.TIER_BY_ID = TIER_BY_ID;
+  window.RARITIES = RARITIES;
+  window.RARITY_ORDER = RARITY_ORDER;
+  window.TRADE_UP = TRADE_UP;
+  window.RARITY_RANK = RARITY_RANK;
+  window.drawRarity = drawRarity;
+  window.tierOddsList = tierOddsList;
+  window.tierOddsSentence = tierOddsSentence;
+  window.standoutChancePerBox = standoutChancePerBox;
+  window.canTradeUpFrom = canTradeUpFrom;
+  window.tradeUpPool = tradeUpPool;
+  window.tradeUpPrice = tradeUpPrice;
+}

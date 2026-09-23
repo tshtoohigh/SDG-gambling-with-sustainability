@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Item lookbook — 200 garment types by tag | Second Spin</title>
-<meta name="description" content="Browse every kind of garment in our catalogue, grouped by rarity tag, so you can see what Vintage Rare, Designer Label, Statement Piece, Seasonal Pick and Everyday Staple actually mean.">
+<title>My vault — your boxes, pieces and credit | Second Spin</title>
+<meta name="description" content="Your sealed boxes, the pieces you have opened, home delivery and sell-back for store credit.">
 <meta name="theme-color" content="#1e4430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19' fill='%231e4430'/%3E%3Cpath d='M20 20 L20 5 A15 15 0 0 1 34.3 15.4 Z' fill='%23f4b429'/%3E%3Cpath d='M20 20 L34.3 15.4 A15 15 0 0 1 20 35 Z' fill='%23e4572e'/%3E%3Cpath d='M20 20 L20 35 A15 15 0 0 1 5.7 15.4 Z' fill='%233e9bc0'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/css/styles.css">
@@ -34,11 +34,11 @@
     <nav class="nav" id="site-nav" data-nav aria-label="Main">
       <ul class="nav__list">
         <li><a class="nav__link" href="shop.html">Shop boxes</a></li>
-        <li><a class="nav__link" href="lookbook.html" aria-current="page">Lookbook</a></li>
+        <li><a class="nav__link" href="lookbook.html">Lookbook</a></li>
         <li><a class="nav__link" href="impact.html">Our impact</a></li>
         <li><a class="nav__link" href="about.html">Our story</a></li>
         <li><a class="nav__link" href="faq.html">FAQ</a></li>
-        <li><a class="nav__link" href="account.html">My vault</a></li>
+        <li><a class="nav__link" href="account.html" aria-current="page">My vault</a></li>
       </ul>
     </nav>
 
@@ -60,122 +60,69 @@
   <!-- ============================ PAGE HEAD ============================ -->
   <section class="page-head">
     <div class="container">
-      <p class="eyebrow">The lookbook</p>
-      <h1>200 real garment types, sorted by tag</h1>
+      <p class="eyebrow">My vault</p>
+      <h1>Your boxes, your pieces, your credit</h1>
       <p class="lead">
-        "Vintage Rare" and "Everyday Staple" are meaningless until you can see them. So here
-        is the whole catalogue &mdash; every kind of piece we stock, grouped by the tag it
-        carries, so you know what each outcome on the reel actually puts in your box.
+        Boxes you buy arrive here sealed. Open them when you're ready &mdash; the draw
+        happens at that moment, against the published odds &mdash; then keep what you want,
+        have it delivered, or sell it back to us for store credit.
       </p>
-      <div class="cluster" style="margin-top:var(--sp-5)">
-        <a class="btn btn--sm btn--berry" href="shop.html">Shop the boxes</a>
-        <a class="btn btn--sm btn--ghost" href="faq.html#odds">See the odds</a>
-      </div>
     </div>
   </section>
 
   <section class="section">
-    <div class="container">
-
-      <!-- The one thing people will misread, addressed up front -->
-      <div class="breadth-note">
-        <span data-icon="warning"></span>
-        <span>
-          <b>These counts are catalogue breadth, not your chances.</b>
-          We stock 60 kinds of Everyday Staple and 20 kinds of Vintage Rare &mdash; that's how
-          many <em>different</em> items exist in each tag, not how likely you are to get one.
-          Your actual chances are the published odds: 8% Vintage Rare on a Classic Box feature
-          slot, for example. Breadth and probability are different numbers and we're not going
-          to let one imply the other.
-          <a href="faq.html#odds">The real odds table</a>
-        </span>
-      </div>
-
-      <div class="filter-bar">
-        <div class="filter-bar__group" data-filter-rarity role="group" aria-label="Filter by rarity tag">
-          <span class="filter-bar__label">Tag</span>
-        </div>
-        <div class="filter-bar__group" data-filter-category role="group" aria-label="Filter by garment category"
-             style="width:100%;border-top:1px dashed var(--paper-line);padding-top:var(--sp-3);margin-top:var(--sp-1)">
-          <span class="filter-bar__label">Type</span>
-        </div>
-      </div>
-
-      <p class="muted" style="margin-bottom:var(--sp-4)">
-        Showing <b data-lookbook-count>200 items</b>.
-        Illustrations are pixel art, not photographs &mdash; every box is packed from
-        one-of-a-kind secondhand stock, so we can't photograph a garment you might receive
-        before we've found it. These show the <em>kind</em> of piece each tag means.
-      </p>
-
-      <div class="item-grid" data-lookbook-grid>
-        <noscript>
-          <p class="lookbook-empty">
-            The lookbook grid needs JavaScript to filter 200 items. The full odds table is
-            available without it on the <a href="faq.html#odds">FAQ page</a>, and the garment
-            sprites live in <code>assets/items/</code>.
-          </p>
-        </noscript>
-      </div>
-    </div>
+    <div class="container" data-account-page></div>
   </section>
 
-  <!-- ======================= WHAT THE TAGS MEAN ======================= -->
-  <section class="section section--paper2" aria-labelledby="tags-title">
+  <!-- ====================== HOW THIS WORKS ====================== -->
+  <section class="section section--paper2" aria-labelledby="flow-title">
     <div class="container">
       <div class="section-head">
-        <p class="eyebrow">Reading the tags</p>
-        <h2 id="tags-title">What each tag actually promises</h2>
-        <p class="lead">
-          The tag is a grading decision made by a human at the bench, not a marketing label.
-          Here's the standard each one has to meet.
-        </p>
+        <p class="eyebrow">The loop</p>
+        <h2 id="flow-title">Shop, open, keep or sell back</h2>
       </div>
 
-      <div class="grid grid--2">
-        <div class="card" style="border-left:10px solid var(--r-rare)">
-          <span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span>
-          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">Datable to before 2000</h3>
-          <p class="muted" style="margin:0">
-            Verified from construction, label typography, care-tag format and country of
-            manufacture &mdash; not from vibes. If we can't date it confidently we grade it down
-            to Statement Piece instead. 20 kinds in the catalogue; typically resells $45&ndash;180.
-          </p>
+      <div class="journey">
+        <div class="journey__node">
+          <span data-icon="box" style="color:var(--moss);display:block"></span>
+          <h4>1. Buy a box</h4>
+          <p>It lands in your vault sealed. Nothing is drawn yet.</p>
         </div>
-        <div class="card" style="border-left:10px solid var(--r-designer)">
-          <span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span>
-          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">A recognised label, authenticated</h3>
-          <p class="muted" style="margin:0">
-            Heritage or contemporary, checked before packing, in good condition. 30 kinds in the
-            catalogue; typically resells $35&ndash;120.
-          </p>
+        <div class="journey__node" style="border-color:var(--berry);border-width:3px">
+          <span data-icon="sparkle" style="color:var(--berry);display:block"></span>
+          <h4>2. Open it</h4>
+          <p>The feature slots roll against the published odds. <b>This is the real draw</b>, and it happens once.</p>
         </div>
-        <div class="card" style="border-left:10px solid var(--r-statement)">
-          <span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span>
-          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">Unlabelled but unforgettable</h3>
-          <p class="muted" style="margin:0">
-            Bold print, unusual cut, or a texture you won't find on a high-street rail. This is
-            also where anything we couldn't authenticate lands. 45 kinds; typically $20&ndash;60.
-          </p>
+        <div class="journey__node">
+          <span data-icon="hanger" style="color:var(--moss);display:block"></span>
+          <h4>3. It's yours</h4>
+          <p>Everything lands in your vault with its grade and tag.</p>
         </div>
-        <div class="card" style="border-left:10px solid var(--r-seasonal)">
-          <span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span>
-          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">Chosen for the month you order</h3>
-          <p class="muted" style="margin:0">
-            Linen in June, brushed flannel in November. Good condition, weather-appropriate,
-            immediately wearable. 45 kinds; typically $15&ndash;40.
-          </p>
+        <div class="journey__node">
+          <span data-icon="truck" style="color:var(--moss);display:block"></span>
+          <h4>4a. Deliver it</h4>
+          <p>Ships Tuesdays and Fridays. Recycled kraft, paper tape, zero plastic.</p>
         </div>
-        <div class="card" style="border-left:10px solid var(--r-everyday);grid-column:1/-1">
-          <span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span>
-          <h3 style="font-size:var(--t-md);margin-top:var(--sp-3)">The backbone of every box &mdash; and the biggest category on purpose</h3>
-          <p class="muted" style="margin:0">
-            60 kinds, more than any other tag, because this is most of what we rescue and most of
-            what actually gets worn. Solid basics with real life left in them that were headed for
-            a bale: merino crew-necks, straight-leg denim, unpilled cotton tees. Three or four of
-            these are in every box, guaranteed, with no roll involved. Typically resells $8&ndash;25.
-          </p>
+        <div class="journey__node">
+          <span data-icon="recycle" style="color:var(--moss);display:block"></span>
+          <h4>4b. Or sell it back</h4>
+          <p>Store credit, and the piece goes back into the pool for someone else.</p>
         </div>
+      </div>
+
+      <div class="callout" style="margin-top:var(--sp-7)">
+        <h3><span data-icon="warning"></span> Two things we want to be straight about</h3>
+        <p>
+          <b>Store credit is not cash.</b> It can only be spent on boxes here. It is never
+          withdrawable and never transferable. That's deliberate: a cash-out is precisely what
+          would turn this into gambling, so there isn't one.
+        </p>
+        <p style="margin-bottom:0">
+          <b>Selling back is always worse value than keeping the piece.</b> We pay well under
+          typical resale because anything returned has to be re-graded, re-photographed and
+          re-shipped. Sell-back exists so nothing gets binned &mdash; not as a way to make
+          money, and we won't dress it up as one.
+        </p>
       </div>
     </div>
   </section>
@@ -183,15 +130,12 @@
   <!-- ============================= CTA BAND ============================= -->
   <section class="cta-band">
     <div class="container container--narrow">
-      <p class="eyebrow">Seen enough?</p>
-      <h2>Now you know what's in the pool.</h2>
-      <p class="lead">
-        Open a box to see your chances at each tag &mdash; free, unlimited, and it reserves
-        nothing.
-      </p>
+      <p class="eyebrow">Need another?</p>
+      <h2>Boxes ship Tuesdays and Fridays.</h2>
+      <p class="lead">Published odds, free swaps, and a vault that remembers what you got.</p>
       <div class="cluster">
-        <a class="btn btn--lg btn--sun" href="shop.html">Pick your box</a>
-        <a class="btn btn--lg btn--ghost" href="box.html">Try the reveal</a>
+        <a class="btn btn--lg btn--sun" href="shop.html">Shop the boxes</a>
+        <a class="btn btn--lg btn--ghost" href="faq.html#accounts">How accounts work</a>
       </div>
     </div>
   </section>
@@ -292,7 +236,8 @@
 <script src="assets/js/account.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/item-catalog.js"></script>
-<script src="assets/js/lookbook.js"></script>
+<script src="assets/js/reel.js"></script>
+<script src="assets/js/product.js"></script>
 <script src="assets/js/account-ui.js"></script>
 </body>
 </html>

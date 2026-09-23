@@ -38,6 +38,7 @@
         <li><a class="nav__link" href="impact.html">Our impact</a></li>
         <li><a class="nav__link" href="about.html">Our story</a></li>
         <li><a class="nav__link" href="faq.html" aria-current="page">FAQ</a></li>
+        <li><a class="nav__link" href="account.html">My vault</a></li>
       </ul>
     </nav>
 
@@ -46,6 +47,7 @@
         <span data-icon="cart" style="width:20px;display:block"></span>
         <span class="cart-btn__count" data-cart-count>0</span>
       </button>
+      <span data-account-chip></span>
       <a class="btn btn--sun btn--sm header-cta" href="shop.html">Shop boxes</a>
       <button class="btn btn--ghost btn--sm nav-toggle" type="button" data-nav-toggle
               aria-expanded="false" aria-controls="site-nav" aria-label="Toggle menu"></button>
@@ -67,6 +69,7 @@
       </p>
       <div class="cluster" style="margin-top:var(--sp-5)">
         <a class="btn btn--sm btn--ghost" href="#odds">Odds &amp; fairness</a>
+        <a class="btn btn--sm btn--ghost" href="#accounts">Accounts</a>
         <a class="btn btn--sm btn--ghost" href="#tradeup">Trade Up</a>
         <a class="btn btn--sm btn--ghost" href="#sourcing">Sourcing &amp; quality</a>
         <a class="btn btn--sm btn--ghost" href="#sizing">Sizing</a>
@@ -101,11 +104,11 @@
                   <tr><th scope="col">Outcome</th><th scope="col" style="text-align:left">Starter</th><th scope="col" style="text-align:left">Classic</th><th scope="col" style="text-align:left">Premium</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td><span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span></td><td style="text-align:left">2%</td><td style="text-align:left">6%</td><td style="text-align:left">20%</td></tr>
-                  <tr><td><span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span></td><td style="text-align:left">5%</td><td style="text-align:left">12%</td><td style="text-align:left">30%</td></tr>
-                  <tr><td><span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span></td><td style="text-align:left">13%</td><td style="text-align:left">22%</td><td style="text-align:left">35%</td></tr>
-                  <tr><td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span></td><td style="text-align:left">25%</td><td style="text-align:left">25%</td><td style="text-align:left">15%</td></tr>
-                  <tr><td><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span></td><td style="text-align:left">55%</td><td style="text-align:left">35%</td><td style="text-align:left">0%</td></tr>
+                  <tr><td><span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span></td><td style="text-align:left">3%</td><td style="text-align:left">8%</td><td style="text-align:left">24%</td></tr>
+                  <tr><td><span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span></td><td style="text-align:left">7%</td><td style="text-align:left">15%</td><td style="text-align:left">32%</td></tr>
+                  <tr><td><span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span></td><td style="text-align:left">16%</td><td style="text-align:left">25%</td><td style="text-align:left">34%</td></tr>
+                  <tr><td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span></td><td style="text-align:left">26%</td><td style="text-align:left">25%</td><td style="text-align:left">10%</td></tr>
+                  <tr><td><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span></td><td style="text-align:left">48%</td><td style="text-align:left">27%</td><td style="text-align:left">0%</td></tr>
                 </tbody>
                 <tfoot><tr><td>Feature slots per box</td><td style="text-align:left">1</td><td style="text-align:left">2</td><td style="text-align:left">2</td></tr></tfoot>
               </table>
@@ -137,8 +140,8 @@
             <p>Three things, all checkable:</p>
             <ul>
               <li>
-                <b>Cell counts are generated from the odds table.</b> A 2% outcome occupies about
-                1 of 64 cells, and the strip prints its own composition so you can count it. We
+                <b>Cell counts are generated from the odds table.</b> A 3% outcome occupies about
+                2 of 64 cells, and the strip prints its own composition so you can count it. We
                 never pad it with extra rare pieces, which is the standard trick.
               </li>
               <li>
@@ -167,8 +170,8 @@
             <p>
               Per <b>feature slot</b>. This matters. A Classic Box has two feature slots, so your
               chance of at least one landing on something better than a basic is
-              1 &minus; (0.35 &times; 0.35) = <b>87.8%</b>, not 65%. A Starter Box has one slot, so
-              it's simply 45%.
+              1 &minus; (0.27 &times; 0.27) = <b>92.7%</b>, not 73%. A Starter Box has one slot, so
+              it's simply 52%.
             </p>
             <p>
               We show that arithmetic on the <a href="shop.html">shop page</a> because quoting a
@@ -204,10 +207,149 @@
               at one box per month. If you want to stop, there's nothing to unwind.
             </p>
             <p>
+            </p>
+            <p>
+              <b>On store credit, since we now buy pieces back.</b> Sell-back could look like a
+              cash-out, and a cash-out is the thing that would genuinely make this gambling. So
+              it isn't one: credit is <b>store credit only</b> &mdash; never cash, never
+              withdrawable, never transferable &mdash; and we pay well under resale, so selling
+              back is always worse value than keeping the piece. There is no way to turn a lucky
+              box into money through us, and no secondary market we operate.
+            </p>
+            <p>
               We do sell one paid second chance, <a href="#tradeup">Trade Up</a>, and it is
               deliberately built so it isn't a re-roll: it can only ever improve your outcome, and
               it's capped at one per feature slot. There's no version of it where you pay and end
               up worse off, which is the thing that makes re-rolls worth chasing.
+            </p>
+          </div>
+        </details>
+      </div>
+
+      <!-- ===================== ACCOUNTS ===================== -->
+      <div class="faq-group" id="accounts">
+        <div class="faq-group__title">
+          <span data-icon="box"></span>
+          <h2 style="margin:0;font-size:var(--t-xl)">Accounts, opening, delivery &amp; sell-back</h2>
+        </div>
+
+        <details class="qa" open>
+          <summary>How do accounts work here? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              You sign in with an email address, boxes you buy land in
+              <a href="account.html">your vault</a> sealed, and you open them when you want to.
+            </p>
+            <p>
+              <b>Being straight about what this prototype is:</b> there is no server behind it.
+              Your vault is stored in your own browser, so it doesn't follow you to another
+              device, clearing site data erases it, and there is no password &mdash; anyone
+              using that browser is you. A real version needs a server, real authentication,
+              and the draw moved off the client (see below). We'd rather say that than let the
+              word "account" imply more than it does.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>When exactly is my box decided? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              At the moment you press <b>Open</b> &mdash; not when you buy, and not when it
+              ships. A sealed box in your vault has nothing assigned to it yet.
+            </p>
+            <p>
+              The result is resolved and written down <em>before</em> the animation plays. The
+              reel is showing you a decision already recorded; nothing about the scroll can
+              change it. Each box can only be opened once.
+            </p>
+            <p class="muted">
+              In this prototype the draw resolves in your browser, which means it is
+              technically tamperable by anyone who opens developer tools. That is fine for a
+              demo and unacceptable for real money &mdash; in production the draw is a server
+              call that writes an audit row and returns a signed result. It's deliberately
+              isolated to one function (<code>resolveDraw</code> in
+              <code>assets/js/account.js</code>) so that swap is small.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>How do I get my clothes physically? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              Select the pieces you want in your vault and request delivery. Deliveries go out
+              Tuesdays and Fridays in a recycled kraft box with paper tape and paper wrap, and a
+              note card listing each piece, its grade and the shop it came from.
+            </p>
+            <p>
+              You can request delivery of some pieces and leave others in the vault &mdash;
+              handy if you'd rather wait and combine it with a later box to save a shipment.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>What is sell-back, and what do I get? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              If a piece isn't for you, sell it back to us for store credit rather than letting
+              it sit unworn. Flat rates by tag:
+            </p>
+            <div style="overflow-x:auto">
+              <table class="odds-table" style="min-width:380px">
+                <caption>Store credit paid per piece sold back.</caption>
+                <thead><tr><th scope="col">Tag</th><th scope="col">Credit</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span></td><td>$28</td></tr>
+                  <tr><td><span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span></td><td>$18</td></tr>
+                  <tr><td><span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span></td><td>$10</td></tr>
+                  <tr><td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span></td><td>$6</td></tr>
+                  <tr><td><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span></td><td>$3</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              <b>This is deliberately worse value than keeping the piece.</b> A Vintage Rare
+              typically resells for $45&ndash;180 and we pay $28, because anything returned has
+              to be re-graded, re-photographed, re-listed and re-shipped. Sell-back exists so
+              nothing ends up unworn in a drawer or a bin &mdash; not as a way to make money,
+              and we're not going to imply otherwise by quoting it next to a resale figure.
+            </p>
+            <p>Pieces you sell back are re-graded and go into the pool for someone else's box.</p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>Can I cash out my store credit? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              No. Credit can only be spent on boxes here. It is never paid out as cash, never
+              withdrawable, and never transferable to another account.
+            </p>
+            <p>
+              That limit is the point rather than an inconvenience. A randomised product plus a
+              cash-out is, functionally, gambling. Without one, the worst case of any box is
+              still a parcel of wearable clothing, and there's no way to turn a lucky roll into
+              money through us. If we ever added a cash-out we would have broken the promise on
+              <a href="about.html">our pledges page</a>, and this answer would be a lie.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>Can I sell a piece back and then buy more boxes with it? <span class="qa__chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m5 9 7 7 7-7"/></svg></span></summary>
+          <div class="qa__body">
+            <p>
+              Yes, and it's worth understanding the arithmetic before you do. Because we pay
+              well under resale, recycling credit back into boxes loses value every lap &mdash;
+              it is not a strategy that comes out ahead, and it never will be by design.
+            </p>
+            <p>
+              The subscription cap of one box per month still applies, and we don't reward
+              streaks, volume or consecutive purchases in any way. If you find yourself selling
+              pieces back mainly to fund more boxes, that's the point to stop, and we'd rather
+              print that sentence than bury it.
             </p>
           </div>
         </details>
@@ -291,31 +433,31 @@
                   <tr>
                     <th scope="row" style="text-align:left">Starter<br><span class="muted">$1.00</span></th>
                     <td><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday</span></td>
-                    <td style="text-align:left">Seasonal 58.2% &middot; Statement 30.2% &middot; Designer 11.6%</td>
+                    <td style="text-align:left">Seasonal 53.1% &middot; Statement 32.6% &middot; Designer 14.3%</td>
                     <td>Seasonal</td>
                   </tr>
                   <tr>
                     <th scope="row" style="text-align:left">Starter</th>
                     <td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal</span></td>
-                    <td style="text-align:left">Statement 72.2% &middot; Designer 27.8%</td>
+                    <td style="text-align:left">Statement 69.6% &middot; Designer 30.4%</td>
                     <td>Statement</td>
                   </tr>
                   <tr>
                     <th scope="row" style="text-align:left">Classic<br><span class="muted">$2.20</span></th>
                     <td><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday</span></td>
-                    <td style="text-align:left">Seasonal 42.4% &middot; Statement 37.3% &middot; Designer 20.3%</td>
+                    <td style="text-align:left">Seasonal 38.4% &middot; Statement 38.5% &middot; Designer 23.1%</td>
                     <td>Seasonal</td>
                   </tr>
                   <tr>
                     <th scope="row" style="text-align:left">Classic</th>
                     <td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal</span></td>
-                    <td style="text-align:left">Statement 64.7% &middot; Designer 35.3%</td>
+                    <td style="text-align:left">Statement 62.5% &middot; Designer 37.5%</td>
                     <td>Statement</td>
                   </tr>
                   <tr>
                     <th scope="row" style="text-align:left">Premium<br><span class="muted">$4.50</span></th>
                     <td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal</span></td>
-                    <td style="text-align:left">Statement 53.8% &middot; Designer 46.2%</td>
+                    <td style="text-align:left">Statement 51.5% &middot; Designer 48.5%</td>
                     <td>Statement</td>
                   </tr>
                 </tbody>
@@ -692,6 +834,7 @@
           <li><a href="impact.html">Our impact</a></li>
           <li><a href="about.html">Our story</a></li>
           <li><a href="faq.html#odds">Odds &amp; fairness</a></li>
+          <li><a href="faq.html#accounts">How accounts work</a></li>
           <li><a href="impact.html#receipts">How we count</a></li>
         </ul>
       </div>
@@ -724,6 +867,7 @@
     </div>
     <div class="drawer__body" data-cart-body></div>
     <div class="drawer__foot" data-cart-foot hidden>
+      <div class="cart-credit" data-cart-credit hidden></div>
       <div class="cart-total">
         <span>Clothing rescued <b data-cart-lbs>0 lbs</b></span>
         <strong data-cart-total>$0</strong>
@@ -735,8 +879,10 @@
 </div>
 
 <script src="assets/js/site-data.js"></script>
+<script src="assets/js/account.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/reel.js"></script>
 <script src="assets/js/product.js"></script>
+<script src="assets/js/account-ui.js"></script>
 </body>
 </html>

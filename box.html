@@ -38,6 +38,7 @@
         <li><a class="nav__link" href="impact.html">Our impact</a></li>
         <li><a class="nav__link" href="about.html">Our story</a></li>
         <li><a class="nav__link" href="faq.html">FAQ</a></li>
+        <li><a class="nav__link" href="account.html">My vault</a></li>
       </ul>
     </nav>
 
@@ -46,6 +47,7 @@
         <span data-icon="cart" style="width:20px;display:block"></span>
         <span class="cart-btn__count" data-cart-count>0</span>
       </button>
+      <span data-account-chip></span>
       <a class="btn btn--sun btn--sm header-cta" href="shop.html">Shop boxes</a>
       <button class="btn btn--ghost btn--sm nav-toggle" type="button" data-nav-toggle
               aria-expanded="false" aria-controls="site-nav" aria-label="Toggle menu"></button>
@@ -125,11 +127,11 @@
         <div class="odds-bar" data-tier-oddsbar></div>
         <div class="odds-legend" data-tier-oddslegend style="margin-top:var(--sp-3)"></div>
         <p class="muted" style="margin-top:var(--sp-3);font-size:var(--t-xs)" data-tier-bind="odds">
-          Vintage Rare 6% · Designer Label 12% · Statement Piece 22% · Seasonal Pick 25% · Everyday Staple 35%
+          Vintage Rare 8% · Designer Label 15% · Statement Piece 25% · Seasonal Pick 25% · Everyday Staple 27%
         </p>
         <p style="margin:var(--sp-3) 0 0;font-size:var(--t-sm)">
           Chance at least one feature slot beats a basic:
-          <b data-tier-bind="standout">87.8%</b>
+          <b data-tier-bind="standout">92.7%</b>
         </p>
       </div>
 
@@ -392,6 +394,7 @@
           <li><a href="impact.html">Our impact</a></li>
           <li><a href="about.html">Our story</a></li>
           <li><a href="faq.html#odds">Odds &amp; fairness</a></li>
+          <li><a href="faq.html#accounts">How accounts work</a></li>
           <li><a href="impact.html#receipts">How we count</a></li>
         </ul>
       </div>
@@ -424,6 +427,7 @@
     </div>
     <div class="drawer__body" data-cart-body></div>
     <div class="drawer__foot" data-cart-foot hidden>
+      <div class="cart-credit" data-cart-credit hidden></div>
       <div class="cart-total">
         <span>Clothing rescued <b data-cart-lbs>0 lbs</b></span>
         <strong data-cart-total>$0</strong>
@@ -435,9 +439,11 @@
 </div>
 
 <script src="assets/js/site-data.js"></script>
+<script src="assets/js/account.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/item-catalog.js"></script>
 <script src="assets/js/reel.js"></script>
 <script src="assets/js/product.js"></script>
+<script src="assets/js/account-ui.js"></script>
 </body>
 </html>
