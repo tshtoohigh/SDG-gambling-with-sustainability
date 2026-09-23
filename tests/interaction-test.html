@@ -40,6 +40,15 @@ const RANK = { everyday: 1, seasonal: 2, statement: 3, designer: 4, rare: 5 };
 async function run() {
   let win, doc;
 
+  /* Start from a clean slate. Cart and account state persist in localStorage
+     per origin, so without this the suite inherits whatever a previous run (or
+     a manual poke at the site on the same port) left behind — which silently
+     skews every count assertion downstream. */
+  mark('0. reset persisted state');
+  win = await loadFrame('/account.html');
+  win.localStorage.clear();
+  log(win.localStorage.length === 0, 'localStorage cleared before the run');
+
   /* ==================================================================
      1. The reel renders, and its composition IS the published odds
      ================================================================== */
@@ -470,6 +479,97 @@ async function run() {
   log(!win.Account.isSignedIn(), 'sign out works');
   log(win.Account.get().items.length > 0, 'sign out preserves vault data');
   win.Account.deleteEverything();
+
+
+  /* ==================================================================
+     13. One action refreshes every surface (the change bus)
+     ================================================================== */
+  mark('13. coordinated refresh');
+  win = await loadFrame('/account.html');
+  doc = win.document;
+  await sleep(300);
+  win.localStorage.removeItem('secondspin.cart.v1');
+  win.Account.deleteEverything();
+  win = await loadFrame('/account.html');
+  doc = win.document;
+  await sleep(350);
+
+  log(!!win.Bus, 'Bus exposed');
+  doc.querySelector('#acct-email').value = 'bus@example.com';
+  doc.querySelector('[data-signin] button').click();
+  await sleep(400);
+  log(/Vault/.test(doc.querySelector('[data-account-chip]').textContent),
+      'sign-in refreshes the header chip with no reload');
+
+  /* A single add-to-cart must update badge, drawer body and total together. */
+  win = await loadFrame('/shop.html');
+  doc = win.document;
+  await sleep(300);
+  doc.querySelector('[data-add-to-cart="premium"]').click();
+  await sleep(350);
+  log(doc.querySelector('[data-cart-count]').textContent === '1', 'add-to-cart refreshes the badge');
+  log(/Premium Box/.test(doc.querySelector('[data-cart-body]').textContent), '…and the drawer body');
+  log(/\$45/.test(doc.querySelector('[data-cart-total]').textContent), '…and the total');
+
+  /* Checkout must refresh the cart AND the account chip from one action. */
+  doc.querySelector('[data-checkout]').click();
+  await sleep(400);
+  log(doc.querySelector('[data-cart-count]').textContent === '0', 'checkout refreshes the badge to 0');
+  log(/cart-empty/.test(doc.querySelector('[data-cart-body]').innerHTML), '…and empties the drawer');
+  log(/1/.test(doc.querySelector('[data-account-chip]').textContent),
+      '…and the header chip shows the sealed box');
+
+  /* Sell-back must refresh the cart's credit line on the same page. This was
+     stale before the bus existed — the regression this section guards. */
+  win = await loadFrame('/account.html');
+  doc = win.document;
+  await sleep(400);
+  doc.querySelector('[data-open-box]').click();
+  await sleep(3200);
+  doc.querySelector('[data-refresh]').click();
+  await sleep(400);
+  log(doc.querySelector('[data-cart-credit]').hidden === true, 'credit line hidden at zero credit');
+
+  const sellUid = win.Account.vaultItems()[0].uid;
+  const sellVal = win.Account.buybackValue(
+    win.Account.get().items.find((i) => i.uid === sellUid));
+  win.Account.sellBack([sellUid]);
+  await sleep(400);
+  const creditLine = doc.querySelector('[data-cart-credit]');
+  log(creditLine.hidden === false, 'sell-back refreshes the cart credit line without a reload');
+  log(/available/i.test(creditLine.textContent),
+      'empty cart shows the AVAILABLE balance, not a -$0.00 discount');
+  log(new RegExp(`\\$${sellVal.toFixed(2)}`).test(creditLine.textContent),
+      `credit line shows the real balance ($${sellVal.toFixed(2)})`);
+  log(new RegExp(`\\$${sellVal}`).test(doc.querySelector('.vault-summary').textContent),
+      'vault summary refreshed with the new credit');
+  log(doc.querySelector('.vault-summary').getAttribute('aria-live') === 'polite',
+      'vault summary announces changes to assistive tech');
+
+  /* Selection must survive a refresh triggered from anywhere. */
+  const keepUids = win.Account.vaultItems().slice(0, 2).map((i) => i.uid);
+  doc.querySelectorAll('[data-pick]').forEach((c) => {
+    if (keepUids.includes(c.dataset.pick)) {
+      c.checked = true;
+      c.dispatchEvent(new win.Event('change'));
+    }
+  });
+  await sleep(200);
+  log(/2 selected/.test(doc.querySelector('[data-selection-summary]').textContent), '2 items selected');
+  win.Bus.emit('unrelated');
+  await sleep(300);
+  log(doc.querySelectorAll('[data-pick]:checked').length === 2,
+      'selection survives an unrelated refresh');
+
+  doc.querySelector('[data-deliver]').click();
+  await sleep(400);
+  log(/Out for delivery/.test(doc.body.textContent), 'delivery section appears immediately');
+  const selSummary = doc.querySelector('[data-selection-summary]');
+  log(!selSummary || /Nothing selected/.test(selSummary.textContent),
+      'delivery clears the selection');
+
+  win.Account.deleteEverything();
+  win.localStorage.removeItem('secondspin.cart.v1');
 
   const failed = lines.filter(l => l.startsWith('FAIL')).length;
   lines.push('');

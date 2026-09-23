@@ -30,8 +30,10 @@
     });
   }
 
-  Account.onChange(renderHeader);
-  if (!root) return;   // header chip only on other pages
+  if (!root) {
+    Bus.on(renderHeader);          // header chip only, on every other page
+    return;
+  }
 
   /* ------------------------------------------------------------- formatting */
   const money = (n) => (Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`);
@@ -111,7 +113,7 @@
 
     root.innerHTML = `
       <!-- summary -->
-      <div class="vault-summary">
+      <div class="vault-summary" role="status" aria-live="polite">
         <div class="stat">
           <span class="stat__value">${sealed.length}</span>
           <span class="stat__label">sealed boxes</span>
@@ -274,8 +276,13 @@
   }
 
   /* -------------------------------------------------------- selection state */
+  /* Selection survives re-renders. Without this, any refresh — including one
+     triggered from another tab — would silently clear what the visitor ticked. */
+  const picked = new Set();
+
   function selected() {
-    return Array.from(root.querySelectorAll('[data-pick]:checked')).map((c) => c.dataset.pick);
+    return Array.from(picked).filter((u) =>
+      Account.get().items.some((i) => i.uid === u && i.status === 'vault'));
   }
 
   function bindSelection() {
@@ -297,7 +304,14 @@
       sell.disabled = !picks.length;
     };
 
-    root.querySelectorAll('[data-pick]').forEach((c) => c.addEventListener('change', update));
+    /* Restore ticks after a re-render, then keep the set in sync. */
+    root.querySelectorAll('[data-pick]').forEach((c) => {
+      c.checked = picked.has(c.dataset.pick);
+      c.addEventListener('change', () => {
+        if (c.checked) picked.add(c.dataset.pick); else picked.delete(c.dataset.pick);
+        update();
+      });
+    });
     update();
   }
 
@@ -374,17 +388,18 @@
     if (e.target.closest('[data-refresh]')) { render(); return; }
 
     if (e.target.closest('[data-select-all]')) {
-      root.querySelectorAll('[data-pick]').forEach((c) => { c.checked = true; });
+      root.querySelectorAll('[data-pick]').forEach((c) => { c.checked = true; picked.add(c.dataset.pick); });
       bindSelection(); return;
     }
     if (e.target.closest('[data-select-none]')) {
+      picked.clear();
       root.querySelectorAll('[data-pick]').forEach((c) => { c.checked = false; });
       bindSelection(); return;
     }
 
     if (e.target.closest('[data-deliver]')) {
       const picks = selected();
-      if (picks.length) Account.requestDelivery(picks);
+      if (picks.length) { Account.requestDelivery(picks); picked.clear(); }
       return;
     }
     if (e.target.closest('[data-sell]')) {
@@ -399,13 +414,14 @@
         + 'This is always worse value than keeping or wearing them. Credit is store credit '
         + 'only — never cash, never withdrawable.'
       );
-      if (ok) Account.sellBack(picks);
+      if (ok) { Account.sellBack(picks); picked.clear(); }
     }
   });
 
-  /* Re-render on any account change, except while a reveal is mid-flight. */
+  /* Re-render on ANY change, except while a reveal is mid-flight — a refresh
+     mid-animation would tear out the reel the visitor is watching. */
   let suppress = false;
-  Account.onChange(() => {
+  Bus.on(() => {
     renderHeader();
     if (!suppress) render();
   });

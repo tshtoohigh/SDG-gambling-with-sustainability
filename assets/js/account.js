@@ -47,8 +47,6 @@ const BUYBACK = {
 };
 
 const Account = (() => {
-  const listeners = [];
-
   function blank() {
     return {
       email: null,
@@ -76,10 +74,12 @@ const Account = (() => {
   function save() {
     try { localStorage.setItem(ACCOUNT_KEY, JSON.stringify(state)); }
     catch { /* private mode — session-only */ }
-    listeners.forEach((fn) => fn(state));
+    Bus.emit('account');
   }
 
-  const onChange = (fn) => { listeners.push(fn); fn(state); };
+  /** Re-read from storage — used when another tab writes. */
+  function reload() { state = load(); }
+
   const get = () => state;
   const isSignedIn = () => Boolean(state.email);
 
@@ -274,7 +274,7 @@ const Account = (() => {
   }
 
   return {
-    onChange, get, isSignedIn, signIn, signOut, deleteEverything,
+    get, reload, isSignedIn, signIn, signOut, deleteEverything,
     addBoxes, spendCredit, openBox,
     sealedBoxes, openedBoxes, vaultItems, soldItems, deliveryItems,
     art, buybackValue, sellBack, requestDelivery, lbsRescued,

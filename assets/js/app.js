@@ -339,8 +339,13 @@ const Cart = (() => {
   }
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(items)); } catch { /* private mode */ }
-    render();
+    /* Announce once; every surface (badge, drawer, credit line, header chip)
+       re-renders off the bus rather than each mutation poking each surface. */
+    Bus.emit('cart');
   }
+
+  /** Re-read from storage — used when another tab writes. */
+  function reload() { items = load(); }
 
   function add(tierId, qty = 1) {
     const line = items.find((i) => i.id === tierId);
@@ -350,6 +355,14 @@ const Cart = (() => {
     bump();
     openDrawer();
   }
+  /** Nudge a line's quantity by a delta, from in-memory state.
+      NB: do not call this `bump` — that name is taken by the badge animation
+      below, and a duplicate function declaration silently shadows this one. */
+  function changeQty(tierId, delta) {
+    const line = items.find((i) => i.id === tierId);
+    setQty(tierId, (line ? line.qty : 0) + delta);
+  }
+
   function setQty(tierId, qty) {
     const line = items.find((i) => i.id === tierId);
     if (!line) return;
@@ -407,15 +420,20 @@ const Cart = (() => {
       }).join('');
     }
 
-    /* Show available store credit so it isn't a surprise at checkout. */
+    /* Show store credit so it isn't a surprise at checkout. Distinguish the
+       balance from the amount that would actually be applied — with an empty
+       cart, "applied" is £0 and showing that as a discount reads as a bug. */
     const creditEl = $('[data-cart-credit]');
     if (creditEl) {
       const credit = (typeof Account !== 'undefined' && Account.isSignedIn())
         ? Account.get().credit : 0;
       creditEl.hidden = !credit;
       if (credit) {
-        const applied = Math.min(credit, total());
-        creditEl.innerHTML = `<span>Store credit available</span><b>&minus;$${applied.toFixed(2)}</b>`;
+        const due = total();
+        const applied = Math.min(credit, due);
+        creditEl.innerHTML = due
+          ? `<span>Store credit applied</span><b>&minus;$${applied.toFixed(2)}</b>`
+          : `<span>Store credit available</span><b>$${credit.toFixed(2)}</b>`;
       }
     }
 
@@ -478,11 +496,12 @@ const Cart = (() => {
       + ' <br><em>Demo: no payment was taken.</em>');
   }
 
-  return { add, setQty, render, openDrawer, closeDrawer, count, total, checkout };
+  return { add, setQty, changeQty, render, reload, openDrawer, closeDrawer, count, total, checkout };
 })();
 
 function initCart() {
-  Cart.render();
+  /* One subscription: any change anywhere re-renders the whole cart surface. */
+  Bus.on(() => Cart.render());
 
   document.addEventListener('click', (e) => {
     const addBtn = e.target.closest('[data-add-to-cart]');
@@ -499,9 +518,7 @@ function initCart() {
     const down = e.target.closest('[data-qty-down]');
     if (up || down) {
       const id = (up || down).dataset.qtyUp || (up || down).dataset.qtyDown;
-      const cur = JSON.parse(localStorage.getItem('secondspin.cart.v1') || '[]')
-        .find((i) => i.id === id);
-      Cart.setQty(id, (cur ? cur.qty : 0) + (up ? 1 : -1));
+      Cart.changeQty(id, up ? 1 : -1);
       return;
     }
     if (e.target.closest('[data-checkout]')) {
