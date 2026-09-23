@@ -24,6 +24,7 @@ normally.
 | `shop.html` | All three tiers side by side, wheel with tier switcher, full comparison table |
 | `box.html` | Product page with the full wheel interaction. Accepts `?tier=starter\|classic\|premium` |
 | `impact.html` | "Why it matters" — textile waste crisis, cited sources, measurement methodology, sustainability-score method |
+| `lookbook.html` | All 200 catalogue garments as pixel art, filterable by rarity tag and garment category. Accepts `?tag=rare` |
 | `faq.html` | Odds & fairness, sourcing, sizing, shipping, returns policy for blind items |
 | `about.html` | Origin story, timeline, the team, five public commitments |
 
@@ -152,6 +153,52 @@ guarantee, the console says so.
 
 Trade Up is offered post-delivery, on the order page, once the customer has handled the
 real garment — deliberately not from an animation before the box ships.
+
+### Item lookbook — 200 pixel-art garments
+
+"Vintage Rare" is an abstraction until you can see one. `lookbook.html` shows all 200
+catalogue garments as pixel art, tagged with the rarity band they belong to, filterable by
+tag and by category. Landing on an outcome in the wheel also surfaces a real catalogue
+piece, linked through to the filtered lookbook.
+
+![Item lookbook](docs/screenshots/50-lookbook.png)
+
+**Catalogue breadth per tag** — 20 Vintage Rare, 30 Designer Label, 45 Statement Piece,
+45 Seasonal Pick, 60 Everyday Staple.
+
+> These are **not odds.** Breadth is how many *distinct* items exist under a tag; the
+> odds are your chance of drawing one. The page says this in a callout at the top,
+> because letting a big "60" imply good chances would be exactly the kind of soft
+> deception the rest of the site is built to avoid.
+
+#### How the art is made
+
+There is no image-generation dependency and no binary asset pipeline. Sprites are
+generated procedurally by [`tools/generate-assets.py`](tools/generate-assets.py):
+
+```bash
+python3 tools/generate-assets.py
+```
+
+- **Pure standard library.** The PNG encoder is ~25 lines of `zlib` + `struct` at the
+  bottom of the file. No Pillow, no network.
+- **32×32 logical grid, written at 4× (128px).** Sprites are authored as rectangles, then
+  *auto-outlined* and *auto-shaded*. That is what makes 200 sprites look like one
+  coherent set — nobody hand-draws outlines, so nothing drifts stylistically.
+- **25 garment silhouettes × 30 colourways × 9 patterns**, combined deterministically from
+  a fixed seed, so regenerating produces byte-identical output and the catalogue stays
+  stable.
+- **Total payload ~85 KB for all 200 sprites** (~436 bytes each). Rendered with
+  `image-rendering: pixelated` so they never get smoothed.
+
+Outputs: `assets/items/*.png`, `assets/js/item-catalog.js` (a JS file rather than JSON, so
+the site still works from `file://` where `fetch()` of local JSON is blocked), and
+`docs/contact-sheet.png` for reviewing the whole set at once.
+
+![Contact sheet](docs/contact-sheet.png)
+
+To add garments, add a silhouette builder and register it in `GARMENTS`; to restyle, edit
+`PALETTES`. Counts per tag are in `COUNTS`.
 
 ### Sustainability score
 

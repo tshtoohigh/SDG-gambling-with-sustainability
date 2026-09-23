@@ -256,6 +256,98 @@ async function run() {
   const premOffer = doc.querySelector('[data-offer]');
   log(premOffer && /\$4\.50/.test(premOffer.textContent), 'tradeup/premium: fee shown as $4.50 (10% of $45)');
 
+  /* ---------------- 10. Item lookbook ---------------- */
+  win = await loadFrame('/lookbook.html');
+  doc = win.document;
+  await sleep(400);
+
+  const tiles = doc.querySelectorAll('.item-tile');
+  log(tiles.length === 200, `lookbook: all 200 items rendered (${tiles.length})`);
+  log(win.ITEM_CATALOG && win.ITEM_CATALOG.length === 200,
+      `lookbook: catalogue has 200 entries (${win.ITEM_CATALOG && win.ITEM_CATALOG.length})`);
+
+  const ids = new Set(win.ITEM_CATALOG.map(i => i.id));
+  log(ids.size === 200, `lookbook: all item ids unique (${ids.size})`);
+  const names = new Set(win.ITEM_CATALOG.map(i => i.name));
+  log(names.size === 200, `lookbook: all item names unique (${names.size})`);
+
+  /* Every item must carry one of the five real rarity tags from the odds data */
+  const validTags = ['rare', 'designer', 'statement', 'seasonal', 'everyday'];
+  const badTag = win.ITEM_CATALOG.filter(i => !validTags.includes(i.rarity));
+  log(badTag.length === 0, `lookbook: every item tagged with a real rarity (${badTag.length} bad)`);
+  const usedTags = new Set(win.ITEM_CATALOG.map(i => i.rarity));
+  log(usedTags.size === 5, `lookbook: all five tags represented (${usedTags.size})`);
+
+  /* Breadth must match what the page advertises on its filter buttons */
+  const b = win.catalogBreadth();
+  log(b.rare === 20 && b.designer === 30 && b.statement === 45 && b.seasonal === 45 && b.everyday === 60,
+      `lookbook: breadth 20/30/45/45/60 (${b.rare}/${b.designer}/${b.statement}/${b.seasonal}/${b.everyday})`);
+
+  /* Sprites must actually load, not 404 */
+  await sleep(600);
+  const imgs = Array.from(doc.querySelectorAll('.item-tile__img'));
+  const eager = imgs.slice(0, 24);
+  const broken = eager.filter(im => im.complete && im.naturalWidth === 0);
+  log(broken.length === 0, `lookbook: sprite files load (${broken.length} broken of ${eager.length} checked)`);
+  log(eager.every(im => im.naturalWidth === 128 || im.naturalWidth === 0),
+      `lookbook: sprites are 128px (32px grid at 4x) — got ${eager[0] && eager[0].naturalWidth}`);
+
+  /* Frame must not collapse — this regressed once via the figure margin bug */
+  const frame = doc.querySelector('.item-tile__frame');
+  log(frame && frame.getBoundingClientRect().width > 100,
+      `lookbook: sprite frame is full tile width, not collapsed (${frame && Math.round(frame.getBoundingClientRect().width)}px)`);
+  const tileW = doc.querySelector('.item-tile').getBoundingClientRect().width;
+  log(tileW > 140, `lookbook: tiles are not squeezed by default figure margins (${Math.round(tileW)}px)`);
+
+  /* Rarity filter */
+  doc.querySelector('[data-filter-rarity] [data-rarity="rare"]').click();
+  await sleep(250);
+  log(doc.querySelectorAll('.item-tile').length === 20,
+      `lookbook: rarity filter narrows to 20 Vintage Rare (${doc.querySelectorAll('.item-tile').length})`);
+  const onlyRare = Array.from(doc.querySelectorAll('.item-tile__frame'))
+    .every(f => f.dataset.rarity === 'rare');
+  log(onlyRare, 'lookbook: filtered grid contains only that tag');
+
+  /* Category filter composes with rarity filter */
+  const catBtn = doc.querySelector('[data-filter-category] [data-category="outerwear"]');
+  if (catBtn) {
+    catBtn.click();
+    await sleep(250);
+    const n = doc.querySelectorAll('.item-tile').length;
+    log(n > 0 && n < 20, `lookbook: category filter composes with rarity (${n} items)`);
+  }
+
+  /* Reset */
+  doc.querySelector('[data-filter-rarity] [data-rarity="all"]').click();
+  doc.querySelector('[data-filter-category] [data-category="all"]').click();
+  await sleep(250);
+  log(doc.querySelectorAll('.item-tile').length === 200, 'lookbook: filters reset to all 200');
+
+  /* The page must not imply breadth == odds */
+  const pageText = doc.body.textContent;
+  log(/not your chances|breadth, not/i.test(pageText),
+      'lookbook: explicitly distinguishes catalogue breadth from draw odds');
+
+  /* ---------------- 11. Wheel shows a real catalogue item ---------------- */
+  win = await loadFrame('/box.html?tier=classic');
+  doc = win.document;
+  await sleep(300);
+  const w4 = win.SecondSpin.wheels[0];
+  w4.recordResult(w4.segments.find(s => s.id === 'rare'));
+  await sleep(200);
+  const thumb = doc.querySelector('.item-thumb');
+  log(!!thumb, 'wheel: result panel shows a sample catalogue garment');
+  if (thumb) {
+    const img = thumb.querySelector('img');
+    log(!!img && /assets\/items\/itm-\d{3}\.png/.test(img.getAttribute('src')),
+        `wheel: sample image points at a real sprite (${img && img.getAttribute('src')})`);
+    log(/20 Vintage Rare pieces/.test(thumb.textContent),
+        'wheel: links to the 20 Vintage Rare items in the lookbook');
+    const link = thumb.querySelector('a');
+    log(link && link.getAttribute('href') === 'lookbook.html?tag=rare',
+        'wheel: sample links through to the filtered lookbook');
+  }
+
   const failed = lines.filter(l => l.startsWith('FAIL')).length;
   lines.push('');
   lines.push(`TOTAL: ${lines.filter(l => l.startsWith('PASS')).length} passed, ${failed} failed`);

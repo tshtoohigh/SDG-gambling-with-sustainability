@@ -131,6 +131,10 @@ h4 { font-size: var(--t-md); }
 p  { margin: 0 0 var(--sp-4); text-wrap: pretty; }
 p:last-child { margin-bottom: 0; }
 
+/* Browsers give <figure> a default `margin: 1em 40px`, which silently eats
+   width from any figure used as a grid/flex item (item tiles, testimonials). */
+figure, blockquote, dl, dd { margin: 0; }
+
 a { color: var(--forest); text-decoration-color: var(--sage); text-underline-offset: 3px; }
 a:hover { color: var(--moss); }
 
