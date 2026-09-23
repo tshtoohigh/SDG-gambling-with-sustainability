@@ -38,6 +38,7 @@
         <li><a class="nav__link" href="impact.html" aria-current="page">Our impact</a></li>
         <li><a class="nav__link" href="about.html">Our story</a></li>
         <li><a class="nav__link" href="faq.html">FAQ</a></li>
+        <li><a class="nav__link" href="account.html">My vault</a></li>
       </ul>
     </nav>
 
@@ -46,6 +47,7 @@
         <span data-icon="cart" style="width:20px;display:block"></span>
         <span class="cart-btn__count" data-cart-count>0</span>
       </button>
+      <span data-account-chip></span>
       <a class="btn btn--sun btn--sm header-cta" href="shop.html">Shop boxes</a>
       <button class="btn btn--ghost btn--sm nav-toggle" type="button" data-nav-toggle
               aria-expanded="false" aria-controls="site-nav" aria-label="Toggle menu"></button>
@@ -231,11 +233,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr><td><span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span></td><td>48</td><td>5.8%</td><td>6%</td></tr>
-              <tr><td><span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span></td><td>102</td><td>12.4%</td><td>12%</td></tr>
-              <tr><td><span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span></td><td>177</td><td>21.5%</td><td>22%</td></tr>
-              <tr><td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span></td><td>211</td><td>25.6%</td><td>25%</td></tr>
-              <tr><td><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span></td><td>286</td><td>34.7%</td><td>35%</td></tr>
+              <tr><td><span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span></td><td>64</td><td>7.8%</td><td>8%</td></tr>
+              <tr><td><span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span></td><td>126</td><td>15.3%</td><td>15%</td></tr>
+              <tr><td><span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span></td><td>203</td><td>24.6%</td><td>25%</td></tr>
+              <tr><td><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span></td><td>209</td><td>25.4%</td><td>25%</td></tr>
+              <tr><td><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span></td><td>222</td><td>26.9%</td><td>27%</td></tr>
             </tbody>
             <tfoot><tr><td>Total</td><td>824</td><td>100%</td><td>100%</td></tr></tfoot>
           </table>
@@ -444,6 +446,7 @@
           <li><a href="impact.html">Our impact</a></li>
           <li><a href="about.html">Our story</a></li>
           <li><a href="faq.html#odds">Odds &amp; fairness</a></li>
+          <li><a href="faq.html#accounts">How accounts work</a></li>
           <li><a href="impact.html#receipts">How we count</a></li>
         </ul>
       </div>
@@ -476,6 +479,7 @@
     </div>
     <div class="drawer__body" data-cart-body></div>
     <div class="drawer__foot" data-cart-foot hidden>
+      <div class="cart-credit" data-cart-credit hidden></div>
       <div class="cart-total">
         <span>Clothing rescued <b data-cart-lbs>0 lbs</b></span>
         <strong data-cart-total>$0</strong>
@@ -487,8 +491,10 @@
 </div>
 
 <script src="assets/js/site-data.js"></script>
+<script src="assets/js/account.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/reel.js"></script>
 <script src="assets/js/product.js"></script>
+<script src="assets/js/account-ui.js"></script>
 </body>
 </html>

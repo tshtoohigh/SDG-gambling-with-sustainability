@@ -73,7 +73,7 @@ async function run() {
     if (Math.abs(before[k] - exact) > 1) proportional = false;
   });
   log(proportional, `every cell count within 1 of its exact published proportion (${detail.join(', ')})`);
-  log(reel.counts.rare === 4, `6% Vintage Rare renders as 4 of 64 cells (${reel.counts.rare})`);
+  log(reel.counts.rare === 5, `8% Vintage Rare renders as 5 of 64 cells (${reel.counts.rare})`);
 
   /* ==================================================================
      2. Opening resolves a result
@@ -234,8 +234,8 @@ async function run() {
   log(doc.querySelector('[data-tier-bind="price"]').textContent.trim() === '$10',
       '?tier=starter applies Starter pricing');
   log(win.SecondSpin.reels[0].tier.id === 'starter', '?tier=starter switches the reel');
-  log(win.SecondSpin.reels[0].counts.rare === 1,
-      `Starter's 2% Vintage Rare renders as 1 of 64 cells (${win.SecondSpin.reels[0].counts.rare})`);
+  log(win.SecondSpin.reels[0].counts.rare === 2,
+      `Starter's 3% Vintage Rare renders as 2 of 64 cells (${win.SecondSpin.reels[0].counts.rare})`);
 
   /* ==================================================================
      8. Shop page
@@ -346,6 +346,130 @@ async function run() {
       .filter(n => html.includes(n));
     log(stale.length === 0, `${page} free of retired wheel/card markup${stale.length ? ' — found ' + stale.join(', ') : ''}`);
   }
+
+
+  /* ==================================================================
+     12. Accounts: shop -> vault -> real open -> keep / deliver / sell back
+     ================================================================== */
+  mark('12. accounts');
+  win = await loadFrame('/account.html');
+  doc = win.document;
+  await sleep(350);
+  const norm = (s) => s.replace(/\s+/g, ' ');
+
+  /* Isolate: the cart section above left items in localStorage, which would
+     otherwise be swept into this section's checkout and skew the counts. */
+  win.localStorage.removeItem('secondspin.cart.v1');
+  win.Account.deleteEverything();
+  win = await loadFrame('/account.html');
+  doc = win.document;
+  await sleep(350);
+
+  log(!!win.Account, 'Account model exposed');
+  log(!win.Account.isSignedIn(), 'starts signed out');
+  log(/no server and no password/i.test(norm(doc.body.textContent)),
+      'signed-out state discloses there is no server and no password');
+  log(/stored in this browser only/i.test(norm(doc.body.textContent)),
+      'discloses browser-only storage');
+
+  doc.querySelector('#acct-email').value = 'tester@example.com';
+  doc.querySelector('[data-signin] button').click();
+  await sleep(400);
+  log(win.Account.isSignedIn(), 'sign in works');
+
+  /* Buy, and confirm boxes arrive in the account rather than vanishing */
+  win = await loadFrame('/shop.html');
+  doc = win.document;
+  await sleep(300);
+  log(win.Account.isSignedIn(), 'session persists across pages');
+  doc.querySelector('[data-add-to-cart="classic"]').click();
+  await sleep(200);
+  doc.querySelector('[data-checkout]').click();
+  await sleep(400);
+  log(win.Account.sealedBoxes().length === 1,
+      `checkout creates a sealed box (${win.Account.sealedBoxes().length})`);
+  log(/no payment was taken/i.test(doc.querySelector('[data-checkout-msg]').textContent),
+      'checkout states no payment was taken');
+
+  /* Open it for real */
+  win = await loadFrame('/account.html');
+  doc = win.document;
+  await sleep(400);
+  const boxId = doc.querySelector('[data-open-box]').dataset.openBox;
+  const boxTier = win.TIER_BY_ID[win.Account.get().boxes.find(b => b.id === boxId).tierId];
+  doc.querySelector('[data-open-box]').click();
+  await sleep(3000);
+
+  const drawn = win.Account.get().items.filter(i => i.boxId === boxId);
+  log(win.Account.get().boxes.find(b => b.id === boxId).status === 'opened', 'box marked opened');
+  log(drawn.length === boxTier.featureSlots + boxTier.everydaySlots,
+      `box yielded ${drawn.length} items (expected ${boxTier.featureSlots + boxTier.everydaySlots})`);
+  log(drawn.filter(i => i.slot === 'feature').length === boxTier.featureSlots,
+      `${boxTier.featureSlots} feature slot(s) drawn`);
+  log(drawn.filter(i => i.slot === 'staple').every(i => i.rarity === 'everyday'),
+      'staples are all Everyday — not a lottery');
+  log(drawn.every(i => i.itemId && i.itemId.startsWith('itm-')),
+      'every item bound to a real catalogue sprite');
+  log(win.Account.openBox(boxId) === null, 'a box cannot be opened twice');
+
+  const liveText = norm(doc.querySelector('[data-reel-result]').textContent);
+  log(/it.s in your vault/i.test(liveText), 'live result says the piece is yours');
+  log(!/Trade it up for/.test(liveText), 'live result does NOT offer a free practice Trade Up');
+  log(/chance/.test(liveText), 'live result still states the published % chance');
+
+  /* Vault, sell-back, delivery */
+  doc.querySelector('[data-refresh]').click();
+  await sleep(400);
+  log(doc.querySelectorAll('.item-tile').length >= drawn.length, 'vault grid shows the items');
+
+  const sellUids = win.Account.vaultItems().slice(0, 2).map(i => i.uid);
+  const expected = sellUids.reduce((n, u) =>
+    n + win.Account.buybackValue(win.Account.get().items.find(i => i.uid === u)), 0);
+  const creditBefore = win.Account.get().credit;
+  const gained = win.Account.sellBack(sellUids);
+  await sleep(300);
+  log(gained === expected, `sell-back credits $${gained} (expected $${expected})`);
+  log(win.Account.get().credit === creditBefore + expected, 'credit balance increased');
+  log(win.Account.soldItems().length === 2, 'sold items tracked separately');
+  log(win.Account.vaultItems().every(i => !sellUids.includes(i.uid)), 'sold items left the vault');
+
+  const bb = win.BUYBACK;
+  log(bb.rare > bb.designer && bb.designer > bb.statement
+      && bb.statement > bb.seasonal && bb.seasonal > bb.everyday,
+      'buyback values ordered by rarity');
+  /* Buyback must stay below resale, else it becomes an arbitrage loop. */
+  log(bb.rare < 45, `rare buyback ($${bb.rare}) is below its resale floor ($45) — no arbitrage`);
+
+  const dlvUids = win.Account.vaultItems().slice(0, 1).map(i => i.uid);
+  win.Account.requestDelivery(dlvUids);
+  await sleep(300);
+  log(win.Account.deliveryItems().length === 1, 'delivery moves the item out of the vault');
+  log(win.Account.get().deliveries.length === 1, 'delivery request recorded');
+
+  /* Credit is spendable at checkout */
+  win = await loadFrame('/shop.html');
+  doc = win.document;
+  await sleep(300);
+  const creditNow = win.Account.get().credit;
+  log(creditNow > 0, `credit carried over ($${creditNow})`);
+  doc.querySelector('[data-add-to-cart="starter"]').click();
+  await sleep(300);
+  log(!doc.querySelector('[data-cart-credit]').hidden, 'cart shows available store credit');
+  doc.querySelector('[data-checkout]').click();
+  await sleep(400);
+  log(/store credit/i.test(doc.querySelector('[data-checkout-msg]').textContent),
+      'checkout applies store credit');
+  log(win.Account.get().credit < creditNow, 'credit was spent');
+  log(win.Account.get().ledger.length >= 4,
+      `ledger records activity (${win.Account.get().ledger.length} entries)`);
+  log(/Vault/.test(doc.querySelector('[data-account-chip]').textContent),
+      'header shows the vault chip');
+
+  win.Account.signOut();
+  await sleep(200);
+  log(!win.Account.isSignedIn(), 'sign out works');
+  log(win.Account.get().items.length > 0, 'sign out preserves vault data');
+  win.Account.deleteEverything();
 
   const failed = lines.filter(l => l.startsWith('FAIL')).length;
   lines.push('');

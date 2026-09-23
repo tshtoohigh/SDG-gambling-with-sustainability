@@ -24,6 +24,7 @@ normally.
 | `shop.html` | All three tiers side by side, reel with tier switcher, full comparison table |
 | `box.html` | Product page with the full reveal interaction. Accepts `?tier=starter\|classic\|premium` |
 | `impact.html` | "Why it matters" — textile waste crisis, cited sources, measurement methodology, sustainability-score method |
+| `account.html` | My vault — sealed boxes, the real opening, the collection, delivery, sell-back and store credit |
 | `lookbook.html` | All 200 catalogue garments as pixel art, filterable by rarity tag and garment category. Accepts `?tag=rare` |
 | `faq.html` | Odds & fairness, sourcing, sizing, shipping, returns policy for blind items |
 | `about.html` | Origin story, timeline, the team, five public commitments |
@@ -47,11 +48,14 @@ assets/
     app.js         nav, scroll reveal, impact counter, odds modal, cart, marquee, forms
     reel.js        the Reel component (reveal animation + Trade Up)
     product.js     tier switching and product-page data binding
+    account.js     ← accounts, the real draw, vault, delivery, sell-back, credit
+    account-ui.js  the My Vault page
     item-catalog.js  generated garment catalogue (see tools/)
     lookbook.js    lookbook rendering and filtering
 tools/
   pixelkit.py              shared pixel-art toolkit (PRNG, Canvas, PNG encoder)
   generate-assets.py       generates the 200 garment sprites + catalogue
+  verify-odds.py           cross-checks every published odds figure against site-data.js
 tests/
   interaction-test.html    86 in-browser assertions (see Verification)
   screenshot-harness.html  scrolls a page to a selector for section screenshots
@@ -88,8 +92,8 @@ This pattern is borrowed from game case-openers, which are built to manipulate. 
 is built not to, and `assets/js/reel.js` is organised around four rules:
 
 1. **The strip *is* the odds table.** Cell counts are apportioned from the published
-   percentages by largest-remainder, so a 6% outcome occupies exactly **4 of 64 cells**
-   and a 2% outcome exactly 1. The UI prints its own composition underneath so a visitor
+   percentages by largest-remainder, so a 6% outcome occupies exactly **5 of 64 cells**
+   and a 3% outcome exactly 2. The UI prints its own composition underneath so a visitor
    can count it. The strip is **never padded with extra rare pieces** to feel richer.
 2. **No manufactured near-miss.** This is the important one. Case-openers habitually
    decelerate so the marker drifts to the very *edge* of your cell, with a jackpot cell
@@ -123,17 +127,69 @@ remaining pieces are guaranteed everyday staples, not lottery tickets.
 
 | Outcome | Starter $10 | Classic $22 | Premium $45 |
 |---|---|---|---|
-| Vintage Rare | 2% | 6% | 20% |
-| Designer Label | 5% | 12% | 30% |
-| Statement Piece | 13% | 22% | 35% |
-| Seasonal Pick | 25% | 25% | 15% |
-| Everyday Staple | 55% | 35% | never |
+| Vintage Rare | 3% | 8% | 24% |
+| Designer Label | 7% | 15% | 32% |
+| Statement Piece | 16% | 25% | 34% |
+| Seasonal Pick | 26% | 25% | 10% |
+| Everyday Staple | 48% | 27% | never |
 | **Feature slots** | 1 | 2 | 2 |
-| **Chance of ≥1 standout per box** | 45% | 87.8% | 100% |
+| **Chance of ≥1 standout per box** | 52% | 92.7% | 100% |
 
 "Chance of ≥1 standout" is `1 − (P(everyday))^featureSlots`, computed by
 `standoutChancePerBox()` rather than hardcoded. For Classic:
-`1 − 0.35² = 87.8%`.
+`1 − 0.27² = 92.7%`.
+
+### Accounts, the real opening, and sell-back
+
+`account.html` is the signed-in experience: sealed boxes arrive from checkout, you open them
+for real, and what you get lands in a vault you can deliver or sell back.
+
+![My vault](docs/screenshots/70-vault-signin.png)
+
+The loop: **buy → sealed box → open (the real draw) → vault → deliver or sell back → store
+credit → buy.**
+
+- **The draw happens when you press Open**, not at purchase and not at shipping. It is
+  resolved and written to the account *before* the animation plays, and a box can only ever
+  be opened once (asserted by a test).
+- **Live opens are visually distinct from practice reels.** They say the piece is yours, and
+  they do not offer a free practice Trade Up, because the result is already banked.
+- **Sell-back** pays flat store credit per tag: Vintage Rare $28, Designer $18, Statement
+  $10, Seasonal $6, Everyday $3.
+- **Delivery** can be requested per-piece, so you can hold items back and combine shipments.
+
+#### ⚠️ Prototype storage, stated plainly in the UI too
+
+There is **no server**. The account lives in `localStorage`:
+
+- per-browser — it does not follow you to another device, and clearing site data erases it
+- **no password** — anyone using that browser is you
+- **the draw is client-side, so it is tamperable** by anyone with devtools
+
+That last point is why all randomness is confined to a single function, `resolveDraw()` in
+`assets/js/account.js`. In production that becomes one POST to a server that owns the RNG,
+writes an audit row and returns a signed result — nothing downstream changes, because
+everything already treats the result as opaque. The signed-out screen and
+[`faq.html#accounts`](faq.html) say all of this out loud rather than letting the word
+"account" imply more than it delivers.
+
+#### Why sell-back doesn't turn this into gambling
+
+Adding buyback creates a way to realise value from a lucky box, which is exactly the
+mechanic that would make a randomised product gambling. Three constraints prevent it, and
+they are non-negotiable:
+
+1. **Store credit only.** Never cash, never withdrawable, never transferable. There is no
+   cash-out.
+2. **Priced below resale.** A Vintage Rare typically resells for $45–180 and we pay $28.
+   Selling back is always worse value than keeping the piece, so recycling credit into more
+   boxes loses value every lap — it can never be an investment strategy. A test asserts the
+   buyback rate stays below the resale floor.
+3. **No volume rewards.** Subscriptions stay capped at one box a month; no streaks, no
+   escalating bonuses.
+
+The FAQ says outright that if you find yourself selling pieces back mainly to fund more
+boxes, that is the point to stop.
 
 ### Trade Up
 
@@ -146,11 +202,11 @@ was given up — it's a guaranteed upgrade, so there is no loss to chase.
 
 | Box | Give up | Draw from | Worst case | Fee |
 |---|---|---|---|---|
-| Starter | Everyday | Seasonal 58.2% · Statement 30.2% · Designer 11.6% | Seasonal | $1.00 |
-| Starter | Seasonal | Statement 72.2% · Designer 27.8% | Statement | $1.00 |
-| Classic | Everyday | Seasonal 42.4% · Statement 37.3% · Designer 20.3% | Seasonal | $2.20 |
-| Classic | Seasonal | Statement 64.7% · Designer 35.3% | Statement | $2.20 |
-| Premium | Seasonal | Statement 53.8% · Designer 46.2% | Statement | $4.50 |
+| Starter | Everyday | Seasonal 53.1% · Statement 32.6% · Designer 14.3% | Seasonal | $1.00 |
+| Starter | Seasonal | Statement 69.6% · Designer 30.4% | Statement | $1.00 |
+| Classic | Everyday | Seasonal 38.4% · Statement 38.5% · Designer 23.1% | Seasonal | $2.20 |
+| Classic | Seasonal | Statement 62.5% · Designer 37.5% | Statement | $2.20 |
+| Premium | Seasonal | Statement 51.5% · Designer 48.5% | Statement | $4.50 |
 
 Three constraints, all in `TRADE_UP` in `site-data.js`:
 
@@ -274,7 +330,7 @@ disabled — the odds appear as static text and the complete odds table lives in
 ## Verification
 
 `tests/interaction-test.html` drives the real pages in same-origin iframes and asserts
-86 behaviours. Run it against a served copy:
+120 behaviours. Run it against a served copy:
 
 ```bash
 python3 -m http.server 8099 &

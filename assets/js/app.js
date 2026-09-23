@@ -407,6 +407,18 @@ const Cart = (() => {
       }).join('');
     }
 
+    /* Show available store credit so it isn't a surprise at checkout. */
+    const creditEl = $('[data-cart-credit]');
+    if (creditEl) {
+      const credit = (typeof Account !== 'undefined' && Account.isSignedIn())
+        ? Account.get().credit : 0;
+      creditEl.hidden = !credit;
+      if (credit) {
+        const applied = Math.min(credit, total());
+        creditEl.innerHTML = `<span>Store credit available</span><b>&minus;$${applied.toFixed(2)}</b>`;
+      }
+    }
+
     const totalEl = $('[data-cart-total]');
     if (totalEl) totalEl.textContent = `$${total()}`;
     const lbsEl = $('[data-cart-lbs]');
@@ -430,7 +442,43 @@ const Cart = (() => {
     document.body.classList.remove('is-locked');
   }
 
-  return { add, setQty, render, openDrawer, closeDrawer, count, total };
+  /**
+   * Checkout. No payment provider is connected — what this does is move the
+   * order into the visitor's account as sealed boxes, applying any store credit
+   * they've built up from selling pieces back. The UI says it isn't a real
+   * payment; it is not pretending to take money.
+   */
+  function checkout() {
+    const msg = $('[data-checkout-msg]');
+    const say = (state, text) => {
+      if (!msg) return;
+      msg.dataset.state = state;
+      msg.innerHTML = text;
+    };
+
+    if (!items.length) return;
+
+    if (typeof Account === 'undefined' || !Account.isSignedIn()) {
+      say('err', 'Sign in first so your boxes have somewhere to arrive — <a href="account.html" style="color:inherit;text-decoration:underline">open your vault</a>.');
+      return;
+    }
+
+    const due = total();
+    const creditUsed = Account.spendCredit(due);
+    Account.addBoxes(items.map((i) => ({ tierId: i.id, qty: i.qty })));
+    const n = count();
+
+    items = [];
+    save();
+    say('ok',
+      `${n} box${n === 1 ? '' : 'es'} added to your vault, sealed.`
+      + (creditUsed ? ` ${creditUsed === due ? 'Covered entirely by' : 'Applied'} `
+          + `$${creditUsed.toFixed(2)} of store credit.` : '')
+      + ' <a href="account.html" style="color:inherit;text-decoration:underline">Go and open them</a>.'
+      + ' <br><em>Demo: no payment was taken.</em>');
+  }
+
+  return { add, setQty, render, openDrawer, closeDrawer, count, total, checkout };
 })();
 
 function initCart() {
@@ -458,11 +506,7 @@ function initCart() {
     }
     if (e.target.closest('[data-checkout]')) {
       e.preventDefault();
-      const msg = $('[data-checkout-msg]');
-      if (msg) {
-        msg.dataset.state = 'ok';
-        msg.textContent = 'Demo storefront — checkout is not connected to a payment provider.';
-      }
+      Cart.checkout();
     }
   });
 

@@ -38,6 +38,7 @@
         <li><a class="nav__link" href="impact.html">Our impact</a></li>
         <li><a class="nav__link" href="about.html">Our story</a></li>
         <li><a class="nav__link" href="faq.html">FAQ</a></li>
+        <li><a class="nav__link" href="account.html">My vault</a></li>
       </ul>
     </nav>
 
@@ -46,6 +47,7 @@
         <span data-icon="cart" style="width:20px;display:block"></span>
         <span class="cart-btn__count" data-cart-count>0</span>
       </button>
+      <span data-account-chip></span>
       <a class="btn btn--sun btn--sm header-cta" href="shop.html">Shop boxes</a>
       <button class="btn btn--ghost btn--sm nav-toggle" type="button" data-nav-toggle
               aria-expanded="false" aria-controls="site-nav" aria-label="Toggle menu"></button>
@@ -92,7 +94,7 @@
             <button class="tier-switch__btn" type="button" data-tier-value="premium" aria-pressed="false">Premium $45</button>
           </div>
           <p class="pill pill--sage">Showing: <b data-tier-bind="name">Classic Box</b> &middot;
-            chance a feature slot beats a basic: <b data-tier-bind="standout">87.8%</b></p>
+            chance a feature slot beats a basic: <b data-tier-bind="standout">92.7%</b></p>
 
           <div class="reel" data-reel-scope data-reel-tier="classic">
           <div class="reel__viewport" data-reel-viewport>
@@ -151,7 +153,7 @@
               <div class="odds-bar" data-odds-bar></div>
               <div class="odds-legend" data-odds-legend style="margin-top:var(--sp-3)"></div>
               <p class="muted" style="margin-top:var(--sp-3);font-size:var(--t-xs)" data-odds-text>
-                Vintage Rare 2% · Designer Label 5% · Statement Piece 13% · Seasonal Pick 25% · Everyday Staple 55%
+                Vintage Rare 3% · Designer Label 7% · Statement Piece 16% · Seasonal Pick 26% · Everyday Staple 48%
               </p>
               <button class="link-btn" type="button" data-odds-modal="starter">Full odds breakdown</button>
             </div>
@@ -173,7 +175,7 @@
 
             <p class="muted" style="margin:0;font-size:var(--t-xs)">
               No condition guarantee on this tier &mdash; it's our most affordable rescue box.
-              Chance at least one feature slot beats a basic: <b>45%</b>.
+              Chance at least one feature slot beats a basic: <b>52%</b>.
             </p>
           </div>
 
@@ -198,7 +200,7 @@
               <div class="odds-bar" data-odds-bar></div>
               <div class="odds-legend" data-odds-legend style="margin-top:var(--sp-3)"></div>
               <p class="muted" style="margin-top:var(--sp-3);font-size:var(--t-xs)" data-odds-text>
-                Vintage Rare 6% · Designer Label 12% · Statement Piece 22% · Seasonal Pick 25% · Everyday Staple 35%
+                Vintage Rare 8% · Designer Label 15% · Statement Piece 25% · Seasonal Pick 25% · Everyday Staple 27%
               </p>
               <button class="link-btn" type="button" data-odds-modal="classic">Full odds breakdown</button>
             </div>
@@ -221,7 +223,7 @@
 
             <p class="muted" style="margin:0;font-size:var(--t-xs)">
               Guaranteed: at least one piece per box is graded Excellent condition.
-              Chance at least one feature slot beats a basic: <b>87.8%</b>.
+              Chance at least one feature slot beats a basic: <b>92.7%</b>.
             </p>
           </div>
 
@@ -246,7 +248,7 @@
               <div class="odds-bar" data-odds-bar></div>
               <div class="odds-legend" data-odds-legend style="margin-top:var(--sp-3)"></div>
               <p class="muted" style="margin-top:var(--sp-3);font-size:var(--t-xs)" data-odds-text>
-                Vintage Rare 20% · Designer Label 30% · Statement Piece 35% · Seasonal Pick 15%
+                Vintage Rare 24% · Designer Label 32% · Statement Piece 34% · Seasonal Pick 10%
               </p>
               <button class="link-btn" type="button" data-odds-modal="premium">Full odds breakdown</button>
             </div>
@@ -308,12 +310,12 @@
           <tbody>
             <tr><th scope="row" style="text-align:left">Garments</th><td style="text-align:left">5</td><td style="text-align:left">6</td><td style="text-align:left">6</td></tr>
             <tr><th scope="row" style="text-align:left">Feature slots</th><td style="text-align:left">1</td><td style="text-align:left">2</td><td style="text-align:left">2</td></tr>
-            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span></th><td style="text-align:left">2%</td><td style="text-align:left">6%</td><td style="text-align:left">20%</td></tr>
-            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span></th><td style="text-align:left">5%</td><td style="text-align:left">12%</td><td style="text-align:left">30%</td></tr>
-            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span></th><td style="text-align:left">13%</td><td style="text-align:left">22%</td><td style="text-align:left">35%</td></tr>
-            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span></th><td style="text-align:left">25%</td><td style="text-align:left">25%</td><td style="text-align:left">15%</td></tr>
-            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span></th><td style="text-align:left">55%</td><td style="text-align:left">35%</td><td style="text-align:left">never</td></tr>
-            <tr><th scope="row" style="text-align:left">Chance of a standout per box</th><td style="text-align:left">45%</td><td style="text-align:left">87.8%</td><td style="text-align:left">100%</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="rare"><span class="dot" data-rarity="rare"></span>Vintage Rare</span></th><td style="text-align:left">3%</td><td style="text-align:left">8%</td><td style="text-align:left">24%</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="designer"><span class="dot" data-rarity="designer"></span>Designer Label</span></th><td style="text-align:left">7%</td><td style="text-align:left">15%</td><td style="text-align:left">32%</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="statement"><span class="dot" data-rarity="statement"></span>Statement Piece</span></th><td style="text-align:left">16%</td><td style="text-align:left">25%</td><td style="text-align:left">34%</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="seasonal"><span class="dot" data-rarity="seasonal"></span>Seasonal Pick</span></th><td style="text-align:left">26%</td><td style="text-align:left">25%</td><td style="text-align:left">10%</td></tr>
+            <tr><th scope="row" style="text-align:left"><span class="chip" data-rarity="everyday"><span class="dot" data-rarity="everyday"></span>Everyday Staple</span></th><td style="text-align:left">48%</td><td style="text-align:left">27%</td><td style="text-align:left">never</td></tr>
+            <tr><th scope="row" style="text-align:left">Chance of a standout per box</th><td style="text-align:left">52%</td><td style="text-align:left">92.7%</td><td style="text-align:left">100%</td></tr>
             <tr><th scope="row" style="text-align:left">Avg. clothing rescued</th><td style="text-align:left">4.2 lbs</td><td style="text-align:left">5.6 lbs</td><td style="text-align:left">6.4 lbs</td></tr>
             <tr><th scope="row" style="text-align:left">Sustainability score</th><td style="text-align:left">82 (B+)</td><td style="text-align:left">88 (A&minus;)</td><td style="text-align:left">94 (A)</td></tr>
             <tr><th scope="row" style="text-align:left">Free swaps</th><td style="text-align:left">&mdash;</td><td style="text-align:left">1</td><td style="text-align:left">2 + prepaid label</td></tr>
@@ -327,8 +329,8 @@
         <p class="muted" style="margin:0">
           It's the chance that <em>at least one</em> of your feature slots lands on something
           other than an Everyday Staple. For the Classic Box that's
-          1 &minus; (0.35 &times; 0.35) = 87.8%, because it has two independent feature slots.
-          The Starter Box has one slot, so it's simply 45%. We show the arithmetic because a
+          1 &minus; (0.27 &times; 0.27) = 92.7%, because it has two independent feature slots.
+          The Starter Box has one slot, so it's simply 52%. We show the arithmetic because a
           single big percentage with no working is how these sites usually mislead people.
         </p>
       </div>
@@ -431,6 +433,7 @@
           <li><a href="impact.html">Our impact</a></li>
           <li><a href="about.html">Our story</a></li>
           <li><a href="faq.html#odds">Odds &amp; fairness</a></li>
+          <li><a href="faq.html#accounts">How accounts work</a></li>
           <li><a href="impact.html#receipts">How we count</a></li>
         </ul>
       </div>
@@ -463,6 +466,7 @@
     </div>
     <div class="drawer__body" data-cart-body></div>
     <div class="drawer__foot" data-cart-foot hidden>
+      <div class="cart-credit" data-cart-credit hidden></div>
       <div class="cart-total">
         <span>Clothing rescued <b data-cart-lbs>0 lbs</b></span>
         <strong data-cart-total>$0</strong>
@@ -474,9 +478,11 @@
 </div>
 
 <script src="assets/js/site-data.js"></script>
+<script src="assets/js/account.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/item-catalog.js"></script>
 <script src="assets/js/reel.js"></script>
 <script src="assets/js/product.js"></script>
+<script src="assets/js/account-ui.js"></script>
 </body>
 </html>
